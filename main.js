@@ -41,6 +41,9 @@ signUp();
 }
 
 function loginWithGoogle() {
+gid("login_load_normal").style.display = "block";
+gid("login_enter_normal").style.display = "none";
+	
 var provider = new firebase.auth.GoogleAuthProvider();
 //provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
 firebase.auth().signInWithRedirect(provider);
@@ -228,23 +231,6 @@ gid("content").scrollTop = 0;
 
 function loadSettings() {
 
-gid("ac_username").innerHTML = "Email: "+firebase.auth().currentUser.email;
-gid("ac_uid").innerHTML = "Account ID: "+firebase.auth().currentUser.uid;
-
-if (userjson != null && userjson[firebase.auth().currentUser.uid] != null) {
-
-gid("ac_name").innerHTML = "Name: "+htmlescape(userjson[firebase.auth().currentUser.uid].name || "Unknown");
-gid("ac_grade").innerHTML = "Grade: "+htmlescape(userjson[firebase.auth().currentUser.uid].grade || "Unknown");
-gid("ac_device").innerHTML = "Phone: "+htmlescape(userjson[firebase.auth().currentUser.uid].device || "Unknown");
-
-} else {
-
-gid("ac_name").innerHTML = "Name: Unknown";
-gid("ac_grade").innerHTML = "Grade: Unknown";
-gid("ac_device").innerHTML = "Phone: Unknown";
-
-
-}
 }
 
 function showAlert(title,message,type,yesfunction) {
