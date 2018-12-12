@@ -13,6 +13,7 @@ function initFunction() {
   firebase.initializeApp(config);
   readyFunction();
   firebase.auth().onAuthStateChanged(function(user) {
+document.getElementById("everything_loader").style.display = "none";
   if (user) {
 
 		  gid("username").disabled = false;
@@ -154,10 +155,26 @@ function afterLogin() {
 
 openHome();
 
+gid("home_button").style.display = "none";
+gid("points_button").style.display = "none";
+gid("groups_button").style.display = "none";
+gid("queue_button").style.display = "none";
+
 gid("controlpanel").style.display = "block";
 gid("login").style.display = "none";
 gid("login_normal").style.display = "none";
 var string = String(firebase.auth().currentUser.email);
+gid("profile_photo").style.display = "none";
+if (firebase.auth().currentUser.emailVerified) {
+var string = String(firebase.auth().currentUser.displayName)
+gid("profile_photo").src = firebase.auth().currentUser.photoURL;
+gid("profile_photo").style.display = "block";
+gid("home_button").style.display = "block";
+gid("points_button").style.display = "block";
+} else {
+gid("groups_button").style.display = "block";
+gid("queue_button").style.display = "block";
+}
 gid("c_username").innerHTML = string;
 if (gid(location.hash.split("#")[1]+"_content")) {
 switchSection(location.hash.split("#")[1])
@@ -230,6 +247,8 @@ gid("content").scrollTop = 0;
 }
 
 function loadSettings() {
+	
+gid("ac_uid").innerHTML = "Account ID: "+firebase.auth().currentUser.uid;
 
 }
 
@@ -338,7 +357,7 @@ gid("del_context_password").focus();
 
 function confirmDeleteAccount2(oldpass) {
 var constring = gid("del_context_password").value;
-showAlert("Are you sure you want to delete your account?","Once you do this, there's no going back!<div style='padding-top: 10px'></div>You will no longer be part of the Rider App beta.","confirm",function() {actuallyDeleteAccount(oldpass,constring)})
+showAlert("Are you sure you want to delete your account?","Once you do this, there's no going back!","confirm",function() {actuallyDeleteAccount(oldpass,constring)})
 }
 
 function actuallyDeleteAccount(oldpass,constring) {

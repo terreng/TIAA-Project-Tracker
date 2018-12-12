@@ -36,6 +36,10 @@
 </head>
 <body>
 
+<div id="everything_loader" style="display: block;">
+<svg class="spinner" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" ><circle class="path" fill="none" stroke-width="10" stroke-linecap="butt" cx="50" cy="50" r="40"></circle></svg>
+</div>
+
 <div class="everything" id="everything" style="display: none;">
 
 <div id="login" style="display: none">
@@ -121,7 +125,7 @@ CANCEL
 </div>
 </a>
 <div class="page_title" id="navtitle">
-Rider App Overview
+
 </div>
 </div>
 
@@ -166,6 +170,7 @@ TIAA Pro Track
 <a  onclick="logOut();">
 <div class="account">
 <i class="material-icons" style="font-size: 60px; float: left; padding-right: 10px;">account_circle</i>
+<img class="profile_photo" id="profile_photo"></img>
 <div class="logout" style="width: 175px; padding-top: 1px;" id="c_username">
 Username
 </div>
@@ -204,21 +209,8 @@ Logout<i class="material-icons" style="padding-left: 8px;">exit_to_app</i>
 
 <div class="tabcontent" id="settings_content">
 
-<div class="container" id="account_profile">
-<div style="font-size: 25px;" id="cnp">Profile</div>
-<div class="padding"></div>
-<div style="font-size: 20px; padding-bottom: 3px;" id="ac_name"></div>
-<div style="font-size: 20px; padding-bottom: 3px;" id="ac_grade"></div>
-<div style="font-size: 20px; padding-bottom: 3px;" id="ac_device"></div>
-<div style="font-size: 20px;" id="ac_username"></div>
-<div class="padding"></div>
-<div class="buttons">
-<a onclick="updateProfile()">
-<div class="button" id="aefe">
-Update Profile
-</div>
-</a>
-</div>
+<div class="container">
+
 </div>
 
 <div class="container" id="account_settings">

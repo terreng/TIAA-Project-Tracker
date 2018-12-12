@@ -712,3 +712,21 @@ height: 218px;
 .lb2 .login_spinner {
     padding-top: 5px !important;
 }
+
+#everything_loader {
+    display: block;
+    top: 50%;
+    left: 50%;
+    position: fixed;
+    height: 100px;
+    width: 100px;
+    transform: translate(-50%,-50%);
+}
+
+.profile_photo {
+	position: absolute;
+	height: 52px;
+    left: 14px;
+    top: 14px;
+    border-radius: 30px;
+}
