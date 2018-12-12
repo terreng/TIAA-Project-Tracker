@@ -1,0 +1,20 @@
+{
+  "name": "TIAA Project Tracker",
+  "short_name": "TIAA Pro Track",
+  "scope": "/",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "description": "The I Am Academy Project Tracker",
+  "theme_color": "#ffffff",
+  "orientation": "portrait",
+  "icons": [{
+    "src": "images/logo.png",
+    "sizes": "144x144",
+    "type": "image/png"
+  }, {
+    "src": "images/logohq.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }]
+}

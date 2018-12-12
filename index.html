@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>TIAA Project Tracker</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#263238">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="shortcut icon" href="favicon.ico">
+<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0' name='viewport' />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link href="style.css" rel="stylesheet">
+<script type='application/javascript' src='main.js'></script>
+<script async type='application/javascript' src='../js/inobounce2.js'></script>
+<script type='application/javascript' src='../js/fastclick.js'></script>
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+<style>
+@font-face {
+  font-family: 'materialicons';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/materialicons/v30/2fcrYFNaTjcS6g4U3t-Y5RV6cRhDpPC5P4GCEJpqGoc.woff) format('woff');
+}
+
+@font-face {
+  font-family: 'roboto';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v18/CrYjSnGjrRCn0pd9VQsnFOvvDin1pK8aKteLpeZ5c0A.woff) format('woff');
+}
+</style>
+</head>
+<body>
+
+<div class="everything" id="everything" style="display: none;">
+
+<div id="login" style="display: none">
+<div class="login_box" id="login_enter">
+<div style="height: 100px; padding-top: 10px; color: #303030;">
+<h1><center id="ra_title">TIAA Pro Track</center></h1>
+</div>
+<div>
+<input type="text" id="username" placeholder="Email" autocomplete="off" onkeypress="if(event.keyCode==13) {gid('password').focus()}"></input>
+<input type="password" id="password" placeholder="Password" autocomplete="off" onkeypress="if(event.keyCode==13) {logIn()}"></input>
+</div>
+<div id="login_error">
+
+</div>
+<a onclick="logIn()">
+<div class="login_button" id="log_text">
+Log In
+</div>
+</a>
+</div>
+<div class="login_box" id="login_load" style="display: none">
+<div style="height: 100px; padding-top: 10px; color: #303030;">
+<h1><center id="ra_title_2">TIAAPT Admin</center></h1>
+</div>
+<div class="login_spinner">
+<svg class="spinner" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" ><circle class="path" fill="none" stroke-width="10" stroke-linecap="butt" cx="50" cy="50" r="40"></circle></svg>
+</div>
+</div>
+<div class="new_account_button" id="create_account" onclick="studentLogin()">Student Login</div>
+</div>
+
+<div id="login_normal" style="display: none">
+<div class="login_box" id="login_enter_normal">
+<div style="height: 100px; padding-top: 10px; color: #303030;">
+<h1><center>TIAA Project Tracker</center></h1>
+</div>
+
+</div>
+<div class="login_box" id="login_load_normal" style="display: none">
+<div style="height: 100px; padding-top: 10px; color: #303030;">
+<h1><center>TIAA Project Tracker</center></h1>
+</div>
+<div class="login_spinner">
+<svg class="spinner" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" ><circle class="path" fill="none" stroke-width="10" stroke-linecap="butt" cx="50" cy="50" r="40"></circle></svg>
+</div>
+</div>
+<div class="new_account_button" id="create_account" onclick="adminLogin()">Admin Login</div>
+</div>
+
+<div id="controlpanel" style="display: none">
+
+<div class="panel_bk" id="prompt" style="display: none;">
+<div class="panel_container">
+<div id="panel_m">
+<div class="panel">
+<div class="panel-titleA" id="panel-title">
+
+</div>
+<div class="panel-contentA" id="panel-content">
+
+</div>
+<div class="panel-bottomA" id="panel-bottomA">
+<a id="p_ok_link">
+<div class="button" id="p_ok" style="float: right;">
+OK
+</div>
+</a>
+<a onclick="hideAlert()">
+<div class="button gray" id="p_cancel" style="display: none; float: right;">
+CANCEL
+</div>
+</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="top_title float_top" id="toptitle" style="display: none;">
+<a onclick="toggleSidebar()">
+<div class="page_left_icon">
+<i class="material-icons" style="font-size: 43px; padding-right: 8px;">menu</i>
+</div>
+</a>
+<div class="page_title" id="navtitle">
+Rider App Overview
+</div>
+</div>
+
+<div class="overlay-m" id="dk_bk" style="display: none;" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+<div class="title">
+TIAA Pro Track
+</div>
+<div class="shr" style="margin-bottom: 6px;">
+</div>
+<div class="so">
+<div class="side-scroll">
+<a>
+<div class="option active" id="home_button" onclick="switchSection('home')">
+<i class="material-icons sidebar-icons">list_alt</i>Projects
+</div>
+</a>
+<a >
+<div class="option" id="points_button" onclick="switchSection('points')">
+<i class="material-icons sidebar-icons">stars</i>Points
+</div>
+</a>
+<a >
+<div class="option" id="groups_button" onclick="switchSection('groups')">
+<i class="material-icons sidebar-icons">group</i>Manage Groups
+</div>
+</a>
+<a >
+<div class="option" id="queue_button" onclick="switchSection('queue')">
+<i class="material-icons sidebar-icons">check_circle_outline</i>Approval Queue
+</div>
+</a>
+<a >
+<div class="option" id="settings_button" onclick="switchSection('settings')">
+<i class="material-icons sidebar-icons">settings</i>Profile & Settings
+</div>
+</a>
+</div>
+</div>
+<div class="shr" style="position: absolute; bottom: 79px; width: 260px;"></div>
+<a  onclick="logOut();">
+<div class="account">
+<i class="material-icons" style="font-size: 60px; float: left; padding-right: 10px;">account_circle</i>
+<div class="logout" style="width: 175px; padding-top: 1px;" id="c_username">
+Username
+</div>
+<div class="logout" style="padding-top: 3px;">
+Logout<i class="material-icons" style="padding-left: 8px;">exit_to_app</i>
+</div>
+</div>
+</a>
+</div>
+
+<div class="content_title" id="content_title">Overview</div>
+
+<div id="content">
+
+<div id="control">
+
+<div class="tabcontent" id="home_content">
+
+
+</div>
+
+<div class="tabcontent" id="points_content">
+
+
+</div>
+
+<div class="tabcontent" id="groups_content">
+
+
+</div>
+
+<div class="tabcontent" id="queue_content">
+
+
+</div>
+
+<div class="tabcontent" id="settings_content">
+
+<div class="container" id="account_profile">
+<div style="font-size: 25px;" id="cnp">Profile</div>
+<div class="padding"></div>
+<div style="font-size: 20px; padding-bottom: 3px;" id="ac_name"></div>
+<div style="font-size: 20px; padding-bottom: 3px;" id="ac_grade"></div>
+<div style="font-size: 20px; padding-bottom: 3px;" id="ac_device"></div>
+<div style="font-size: 20px;" id="ac_username"></div>
+<div class="padding"></div>
+<div class="buttons">
+<a onclick="updateProfile()">
+<div class="button" id="aefe">
+Update Profile
+</div>
+</a>
+</div>
+</div>
+
+<div class="container" id="account_settings">
+<div style="font-size: 25px;" id="cnp">Account Settings</div>
+<div class="padding"></div>
+<div style="font-size: 20px;" id="ac_uid">Account ID: terren</div>
+<div class="padding"></div>
+<div class="buttons">
+<a onclick="changePassword()">
+<div class="button" id="aefe">
+Change Password
+</div>
+</a>
+<a onclick="closeAccount()">
+<div class="button red" style="margin-right: 0" id="fjpo">
+Delete Account
+</div>
+</a>
+</div>
+</div>
+
+</div>
+
+
+</div>
+</div>
+</div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/4.6.2/firebase.js"></script>
+<script>
+if ('addEventListener' in document) {
+	document.addEventListener('DOMContentLoaded', function() {
+		FastClick.attach(document.body);
+	}, false);
+}
+
+webappsafari = (window.navigator.standalone == true);
+webappchrome = (window.matchMedia('(display-mode: standalone)').matches);
+isandroid = /(android)/i.test(navigator.userAgent);
+isios = /(iPad|iPhone|iPod)/i.test(navigator.userAgent);
+ischrome = !!window.chrome;
+if (!!navigator.userAgent.match(/SamsungBrowser/i)) {
+    ischrome = false
+}
+issafari = /iP(ad|od|hone)/i.test(window.navigator.userAgent) && /WebKit/i.test(window.navigator.userAgent) && !(/(CriOS|FxiOS|OPiOS|mercury)/i.test(window.navigator.userAgent));
+if (isios) {
+iosversion = (navigator.appVersion).match(/OS (\d+)_(\d+)_?(\d+)?/)[1]
+}
+if (isandroid) {
+androidversion = (navigator.userAgent).toLowerCase().match(/android\s([0-9\.]*)/)[1].charAt(0)
+}
+if (ischrome && isandroid) {
+chromeversion = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2]
+}
+
+var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+if (isMobile) {
+document.getElementById("sidebar").style.display = "none";
+document.getElementById("content_title").style.display = "none";
+document.getElementById("toptitle").style.display = "block";
+gid("content").classList.add("content_mobile");
+} else {
+gid("content").classList.add("content_desktop");
+}
+
+   WebFont.load( {
+       custom: {
+           families: [ 'materialicons', 'roboto' ]
+       },
+       active: function() {
+           initFunction()
+       },
+   } );
+
+</script>
+<script type="text/javascript" src="https://apis.google.com/js/api.js?onload=onApiLoad"></script>
+</body>
+</html>
