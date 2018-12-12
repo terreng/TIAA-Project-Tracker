@@ -1,5 +1,6 @@
 var inanim = false;
 var sactive = false;
+var userjson;
 
 function initFunction() {
   var config = {
@@ -13,15 +14,17 @@ function initFunction() {
   firebase.initializeApp(config);
   readyFunction();
   firebase.auth().onAuthStateChanged(function(user) {
-document.getElementById("everything_loader").style.display = "none";
   if (user) {
 
 		  gid("username").disabled = false;
 	gid("username").value = "";
 	gid("password").value = "";
-	afterLogin();
+	
+	firebase.database().ref("users/"+firebase.auth().currentUser.uid).once('value').then(function(snapshot) { {userjson = snapshot.val(); afterLogin(); document.getElementById("everything_loader").style.display = "none";}})
+	
+	
   } else {
-
+document.getElementById("everything_loader").style.display = "none";
     gid("login_normal").style.display = "block";
     gid("controlpanel").style.display = "none";
   gid("login_enter").style.display = "block";
