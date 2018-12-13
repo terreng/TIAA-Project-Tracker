@@ -417,6 +417,7 @@ word-wrap: break-word;
 width: calc(100% - 20px);
 padding: 10px 10px;
 padding-top: 15px;
+margin-bottom: 7px;
 }
 .panel-titleA {
 	width: calc(90vw - 32px);
@@ -729,4 +730,15 @@ height: 218px;
     left: 14px;
     top: 13px;
     border-radius: 30px;
+}
+
+.truncate {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#p_error {
+    color: red;
+    padding-top: 6px;
 }

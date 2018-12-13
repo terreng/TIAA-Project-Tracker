@@ -20,7 +20,9 @@ function initFunction() {
 	gid("username").value = "";
 	gid("password").value = "";
 	
-	firebase.database().ref("users/"+firebase.auth().currentUser.uid).once('value').then(function(snapshot) { {userjson = snapshot.val(); afterLogin(); document.getElementById("everything_loader").style.display = "none";}})
+	firebase.database().ref("users/"+firebase.auth().currentUser.uid).once('value').then(function(snapshot) { {userjson = snapshot.val(); if (userjson != null) {} else {
+userjson = new Array();
+} afterLogin(); document.getElementById("everything_loader").style.display = "none";}})
 	
 	
   } else {
@@ -170,7 +172,9 @@ var string = String(firebase.auth().currentUser.email);
 gid("profile_photo").style.display = "none";
 if (firebase.auth().currentUser.emailVerified) {
 var string = String(firebase.auth().currentUser.displayName)
+gid("prof_name").innerHTML = htmlescape(string);
 gid("profile_photo").src = firebase.auth().currentUser.photoURL;
+gid("profile_photo_2").src = firebase.auth().currentUser.photoURL;
 gid("profile_photo").style.display = "block";
 gid("home_button").style.display = "block";
 gid("points_button").style.display = "block";
@@ -249,9 +253,30 @@ loadSettings();
 gid("content").scrollTop = 0;
 }
 
+function formatPhone(phone) {
+if (phone) {
+  var x = phone.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
+  return !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? ' - ' + x[3] : '');
+} else {
+	return undefined;
+}
+}
+
+function rawPhone(phone) {
+	return phone;
+}
+
 function loadSettings() {
 	
 gid("ac_uid").innerHTML = "Account ID: "+firebase.auth().currentUser.uid;
+if (firebase.auth().currentUser.emailVerified) {
+	gid("account_settings").style.display = "none";
+	gid("profile_info").style.display = "block";
+	gid("phone_box").innerHTML = formatPhone(userjson.phone) || "<i>Unknown</i>";
+} else {
+	gid("account_settings").style.display = "block";
+	gid("profile_info").style.display = "none";
+}
 
 }
 
@@ -418,9 +443,9 @@ if (userjson[firebase.auth().currentUser.uid] != null) {} else {
 userjson[firebase.auth().currentUser.uid] = new Array();
 }
 	
-userjson[firebase.auth().currentUser.uid].name = newname;
-userjson[firebase.auth().currentUser.uid].grade = newgrade;
-userjson[firebase.auth().currentUser.uid].device = newdevice;
+userjson.name = newname;
+userjson.grade = newgrade;
+userjson.device = newdevice;
 	
 hideAlert();
 loadSettings();
@@ -442,3 +467,33 @@ if(!String.prototype.trim) {
     return this.replace(/^\s+|\s+$/g,'');  
   };  
 } 
+
+
+function editPhone() {
+showAlert("Edit Phone Number","<input type='phone' class='c_text' id='edit1' placeholder='Phone number'><div id='p_error' style='display: none'></div>","submit",function() {savePhone()});
+gid("edit1").focus();
+gid("edit1").value = userjson.phone || "";
+}
+
+function savePhone() {
+var newphone = gid("edit1").value;
+if (String(newphone) !== String(Number(newphone)) && newphone.length > 0) {
+	gid("p_error").style.display = "block"
+	gid("edit1").focus();
+	return gid("p_error").innerHTML = "Error: Phone number contains invalid characters"
+}
+if (String(newphone).length !== 10) {
+	gid("p_error").style.display = "block"
+	gid("edit1").focus();
+	return gid("p_error").innerHTML = "Error: Invalid phone number"
+}
+createPostProgress("Updating phone number");
+firebase.database().ref('users/'+firebase.auth().currentUser.uid+"/phone").set(newphone).then(function () {
+
+userjson.phone = newphone;
+	
+hideAlert();
+loadSettings();
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}

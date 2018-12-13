@@ -161,7 +161,7 @@ TIAA Pro Track
 </a>
 <a >
 <div class="option" id="settings_button" onclick="switchSection('settings')">
-<i class="material-icons sidebar-icons">settings</i>Profile & Settings
+<i class="material-icons sidebar-icons">settings</i>Account
 </div>
 </a>
 </div>
@@ -209,8 +209,47 @@ Logout<i class="material-icons" style="padding-left: 8px;">exit_to_app</i>
 
 <div class="tabcontent" id="settings_content">
 
-<div class="container">
+<div class="container" id="profile_info" style="display: block;overflow: hidden;">
 
+    <div style="
+    float: left;
+    width: 80px;
+    height: 80px;
+"><img id="profile_photo_2" style="display: block;height: 80px;border-radius: 40px;"></div><div style="
+    float: left;
+    width: calc(100% - 80px);
+            "><div class="truncate" style="
+    font-size: 23px;
+    padding-left: 14px;
+    padding-top: 10px;
+    padding-bottom: 5px;
+" id="prof_name"></div><div class="truncate" style="
+    font-size: 21px;
+    color: #656565;
+    padding-left: 14px;
+">Roosevelt</div></div>
+    
+</div>
+
+<div class="container" id="phone_settings" style="
+    overflow: hidden;
+    padding-top: 10px;
+">
+    <div id="phone_box" class="truncate" style="
+    float: left;
+    width: calc(100% - 40px);
+    font-size: 20px;
+    line-height: 36px;
+    margin-bottom: -1px;
+	    min-height: 10px;
+">(555) 555-5555</div><div onclick="editPhone()" style="
+    float: left;
+    width: 40px;
+    font-size: 27px;
+    height: 35px;
+    text-align: center;
+	cursor: pointer;
+"><i class="material-icons">edit</i></div>
 </div>
 
 <div class="container" id="account_settings">
