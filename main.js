@@ -5,7 +5,7 @@ var userjson;
 function initFunction() {
   var config = {
     apiKey: "AIzaSyC_hSeVGx_EdM1fId-Yo5bb120WRn0UDL4",
-    authDomain: "tiaaprojecttracker.firebaseapp.com",
+    authDomain: "auth.tiaapt.com",
     databaseURL: "https://tiaaprojecttracker.firebaseio.com",
     projectId: "tiaaprojecttracker",
     storageBucket: "tiaaprojecttracker.appspot.com",
