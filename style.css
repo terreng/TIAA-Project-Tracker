@@ -742,3 +742,29 @@ height: 218px;
     color: red;
     padding-top: 6px;
 }
+
+.school_select {
+    width: calc(50% - 20px);
+    float: left;
+    margin: 10px;
+	cursor: pointer;
+}
+
+.school_select img {
+    width: calc(100% - 10px);
+    padding: 5px;
+}
+
+.school_select div {
+    text-align: center;
+    font-size: 21px;
+	padding-bottom: 5px;
+}
+
+.school_selected {
+    border-radius: 13px;
+    border-color: black;
+    border-style: solid;
+    margin: 8px;
+    border-width: 2px;
+}

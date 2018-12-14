@@ -86,7 +86,7 @@ Log In
 <svg class="spinner" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" ><circle class="path" fill="none" stroke-width="10" stroke-linecap="butt" cx="50" cy="50" r="40"></circle></svg>
 </div>
 </div>
-<div class="new_account_button" id="create_account" onclick="adminLogin()">Admin Login</div>
+<div class="new_account_button" id="create_account_admin" onclick="adminLogin()">Admin Login</div>
 </div>
 
 <div id="controlpanel" style="display: none">
@@ -164,6 +164,11 @@ TIAA Pro Track
 <i class="material-icons sidebar-icons">settings</i>Account
 </div>
 </a>
+<a >
+<div class="option" id="welcome_button" onclick="switchSection('welcome')">
+<i class="material-icons sidebar-icons">how_to_reg</i>Account Setup
+</div>
+</a>
 </div>
 </div>
 <div class="shr" style="position: absolute; bottom: 79px; width: 260px;"></div>
@@ -186,6 +191,83 @@ Logout<i class="material-icons" style="padding-left: 8px;">exit_to_app</i>
 <div id="content">
 
 <div id="control">
+
+<div class="tabcontent" id="welcome_content">
+
+<div class="container" id="setup_1">
+
+<div style="font-size: 25px; text-align: center;">Choose your school</div>
+
+<div style="overflow: hidden; max-width: 400px;" id="school_container">
+
+<div id="school_0" onclick="selectSchool(0)" class="school_select"><img src="images/roosevelt.png"></img><div>Roosevelt</div></div>
+
+<div id="school_1" onclick="selectSchool(1)" class="school_select"><img src="images/lincoln.png"></img><div>Lincoln</div></div>
+
+</div>
+
+<div class="padding"></div>
+<div class="buttons">
+<a onclick="setup_step(1)">
+<div class="button button_fr" id="school_continue">
+Continue
+</div>
+</a>
+</div>
+
+</div>
+
+<div class="container" id="setup_2">
+
+<div style="font-size: 25px; text-align: center;">Enter your phone number</div>
+
+<div class="padding"></div>
+
+<div onclick="setupPhoneNumber()" style="
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+	cursor: pointer;
+"><div style="
+    display: inline-block;
+    font-size: 20px;
+" id="setup_phone"><i>Enter phone number</i></div><i class="material-icons" style="
+    display: inline-block;
+    font-size: 22px;
+    vertical-align: middle;
+    margin-bottom: 5px;
+    padding-left: 6px;
+">edit</i></div>
+
+<div class="padding"></div>
+<div class="buttons">
+<a onclick="setup_step(2)">
+<div class="button button_fr" id="phone_continue">
+Continue
+</div>
+</a>
+<a onclick="setup_step_back(2)">
+<div class="button gray">Back
+</div>
+</a>
+</div>
+
+</div>
+
+<div class="container" id="setup_3">
+
+<div style="font-size: 25px; text-align: center;">Waiting For Approval</div>
+<center><i class="big_icon material-icons">
+access_time
+</i></center>
+<div class="padding" style="padding-top: 8px"></div>
+<div style="font-size: 19px; text-align: center;">
+Your account must be approved and assigned to a group before you have access the project tracker</div>
+<div class="padding"></div>
+
+</div>
+
+</div>
 
 <div class="tabcontent" id="home_content">
 
@@ -223,11 +305,11 @@ Logout<i class="material-icons" style="padding-left: 8px;">exit_to_app</i>
     padding-left: 14px;
     padding-top: 10px;
     padding-bottom: 5px;
-" id="prof_name"></div><div class="truncate" style="
+" id="prof_name"></div><div class="truncate" id="prof_school" style="
     font-size: 21px;
     color: #656565;
     padding-left: 14px;
-">Roosevelt</div></div>
+"></div></div>
     
 </div>
 
@@ -255,7 +337,7 @@ Logout<i class="material-icons" style="padding-left: 8px;">exit_to_app</i>
 <div class="container" id="account_settings">
 <div style="font-size: 25px;" id="cnp">Account Settings</div>
 <div class="padding"></div>
-<div style="font-size: 20px;" id="ac_uid">Account ID: terren</div>
+<div style="font-size: 20px;" id="ac_uid">Account ID: Unknown</div>
 <div class="padding"></div>
 <div class="buttons">
 <a onclick="changePassword()">

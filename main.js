@@ -49,6 +49,7 @@ signUp();
 function loginWithGoogle() {
 gid("login_load_normal").style.display = "block";
 gid("login_enter_normal").style.display = "none";
+gid("create_account_admin").style.display = "none";
 	
 var provider = new firebase.auth.GoogleAuthProvider();
 //provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
@@ -158,6 +159,7 @@ gid = function(id) {return document.getElementById(id)};
 
 function afterLogin() {
 
+location.hash = "#home";
 openHome();
 
 gid("home_button").style.display = "none";
@@ -173,6 +175,7 @@ gid("profile_photo").style.display = "none";
 if (firebase.auth().currentUser.emailVerified) {
 var string = String(firebase.auth().currentUser.displayName)
 gid("prof_name").innerHTML = htmlescape(string);
+gid("prof_school").innerHTML = userjson.school;
 gid("profile_photo").src = firebase.auth().currentUser.photoURL;
 gid("profile_photo_2").src = firebase.auth().currentUser.photoURL;
 gid("profile_photo").style.display = "block";
@@ -181,7 +184,22 @@ gid("points_button").style.display = "block";
 } else {
 gid("groups_button").style.display = "block";
 gid("queue_button").style.display = "block";
+location.hash = "#groups";
 }
+
+gid("settings_button").style.display = "block";
+gid("welcome_button").style.display = "none";
+if (userjson.verified !== true) {
+gid("home_button").style.display = "none";
+gid("points_button").style.display = "none";
+gid("groups_button").style.display = "none";
+gid("queue_button").style.display = "none";
+gid("settings_button").style.display = "none";
+gid("welcome_button").style.display = "block";
+	location.hash = "#welcome";
+	loadSetup();
+}
+
 gid("c_username").innerHTML = string;
 if (gid(location.hash.split("#")[1]+"_content")) {
 switchSection(location.hash.split("#")[1])
@@ -249,6 +267,11 @@ if (tab == "settings") {
 gid("navtitle").innerHTML = "Profile & Settings"
 gid("content_title").innerHTML = "Profile & Settings"
 loadSettings();
+}
+if (tab == "welcome") {
+gid("navtitle").innerHTML = "Account Setup"
+gid("content_title").innerHTML = "Account Setup"
+loadSetup();
 }
 gid("content").scrollTop = 0;
 }
@@ -469,13 +492,13 @@ if(!String.prototype.trim) {
 } 
 
 
-function editPhone() {
-showAlert("Edit Phone Number","<input type='phone' class='c_text' id='edit1' placeholder='Phone number'><div id='p_error' style='display: none'></div>","submit",function() {savePhone()});
+function editPhone(setup) {
+showAlert("Edit Phone Number","<input type='phone' class='c_text' id='edit1' placeholder='Phone number'><div id='p_error' style='display: none'></div>","submit",function() {savePhone(setup)});
 gid("edit1").focus();
 gid("edit1").value = userjson.phone || "";
 }
 
-function savePhone() {
+function savePhone(setup) {
 var newphone = gid("edit1").value;
 if (String(newphone) !== String(Number(newphone)) && newphone.length > 0) {
 	gid("p_error").style.display = "block"
@@ -491,9 +514,114 @@ createPostProgress("Updating phone number");
 firebase.database().ref('users/'+firebase.auth().currentUser.uid+"/phone").set(newphone).then(function () {
 
 userjson.phone = newphone;
+
+if (setup) {
+	
+gid("setup_phone").innerHTML = formatPhone(userjson.phone) || "<i>Enter phone number</i>";
+gid("phone_continue").classList.remove("gray");
+	
+}
 	
 hideAlert();
 loadSettings();
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}
+
+function loadSetup() {
+	
+gid("school_continue").classList.add("gray");
+
+for (var i = 0; i < gid("school_container").children.length; i++) {
+	gid("school_container").children[i].classList.remove("school_selected");
+}
+
+gid("setup_1").style.display = "block";
+gid("setup_2").style.display = "none";
+gid("setup_3").style.display = "none";
+
+if (userjson.school) {
+	
+	
+gid("setup_1").style.display = "none";
+gid("setup_3").style.display = "block";
+}
+	
+}
+
+var selected_school = false;
+var schools = ["Roosevelt","Lincoln"];
+
+function selectSchool(schoolid) {
+	
+selected_school = schools[schoolid];
+
+for (var i = 0; i < gid("school_container").children.length; i++) {
+	gid("school_container").children[i].classList.remove("school_selected");
+}
+
+gid("school_"+schoolid).classList.add("school_selected");
+gid("school_continue").classList.remove("gray");
+	
+}
+
+function setup_step(stepid) {
+	
+if (stepid == 1 && selected_school) {
+	
+gid("setup_1").style.display = "none";
+gid("setup_2").style.display = "block";
+
+gid("setup_phone").innerHTML = formatPhone(userjson.phone) || "<i>Enter phone number</i>";
+if (!userjson.phone) {
+	gid("phone_continue").classList.add("gray");
+}
+	
+}
+
+if (stepid == 2 && userjson.phone) {
+	
+confirmProfile();
+	
+}
+	
+}
+
+function setup_step_back(stepid) {
+	
+if (stepid == 2) {
+	
+gid("setup_1").style.display = "block";
+gid("setup_2").style.display = "none";
+	
+}
+
+if (stepid == 3) {
+	
+gid("setup_2").style.display = "block";
+gid("setup_3").style.display = "none";
+	
+}
+	
+}
+
+function setupPhoneNumber() {
+	editPhone(true);
+}
+
+function confirmProfile() {
+	
+showAlert("Submit account for approval?","Please verify that the following information is correct:<br><br>School: "+selected_school+"<br>Phone: "+formatPhone(userjson.phone),"confirm",function() {
+	
+createPostProgress("Submitting");
+firebase.database().ref('users/'+firebase.auth().currentUser.uid+"/school").set(selected_school).then(function () {
+
+gid("setup_2").style.display = "none";
+gid("setup_3").style.display = "block";
+hideAlert();
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+
+})
+	
 }
