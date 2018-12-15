@@ -636,10 +636,111 @@ function loadGroups() {
 
 function loadQueue() {
 	
+queue_content.innerHTML = "Loading..."
+	
 firebase.database().ref("users").once('value').then(function(snapshot) {
 	
+var users = snapshot.val();
+var pendhtml = "";
 
+if (users != null) {
+for (var i = 0; i < Object.keys(users).length; i++) {
 	
+var cuser = users[Object.keys(users)[i]];
+
+if (cuser.name != null && cuser.admin !== "admin" && cuser.verified !== true && cuser['delete'] !== true) {
+	
+pendhtml += '<div class="approval_card" id="user_'+Object.keys(users)[i]+'" onclick="approveCard(\'user\',\''+Object.keys(users)[i]+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">account_circle</i></div><div class="app_right"><div class="app_title truncate">Account needs approval</div><div class="app_desc truncate">'+htmlescape(cuser.name)+'</div></div></div><div class="expand_content"><div class="prof_top"><img src="'+cuser.picture+'"></img><div>'+htmlescape(cuser.name)+'</div></div><center><div class="prof_details"><div class="prof_detail truncate"><i class="material-icons">email</i>'+htmlescape(cuser.email)+'</div><div class="prof_detail truncate"><i class="material-icons">phone</i>'+formatPhone(cuser.phone)+'</div><div class="prof_detail truncate"><i class="material-icons">account_balance</i>'+htmlescape(cuser.school)+'</div></div></center><div class="actionbar"><div onclick="appDeleteUser(\''+Object.keys(users)[i]+'\')" class="actionbar_item ac_red"><i class="material-icons">close</i>Delete</div><div class="actionbar_item ac_green" onclick="appApproveUser(\''+Object.keys(users)[i]+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
+	
+}
+	
+}
+}
+
+queue_content.innerHTML = pendhtml;
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+var expanded_cards = [];
+var suspended_cards = false;
+
+function approveCard(type,id,skip) {
+
+if (suspended_cards) {
+	return true;
+}
+
+if (expanded_cards.length > 0 && !skip && expanded_cards[0] !== type+"_"+id) {
+	approveCard(expanded_cards[0].split("_")[0],expanded_cards[0].split("_")[1],true);
+}
+
+if (expanded_cards.indexOf(type+"_"+id) > -1) {
+	
+expanded_cards.splice(expanded_cards.indexOf(type+"_"+id),1);
+
+gid(type+"_"+id).querySelector(".unexp").style.opacity = 1;
+gid(type+"_"+id).querySelector(".expand_content").style.opacity = 0;
+
+gid(type+"_"+id).style.height = "49px";
+	
+} else {
+	
+expanded_cards.push(type+"_"+id);
+
+gid(type+"_"+id).querySelector(".unexp").style.opacity = 0;
+gid(type+"_"+id).querySelector(".expand_content").style.height = 'unset';
+gid(type+"_"+id).querySelector(".expand_content").style.opacity = 1;
+
+gid(type+"_"+id).style.height = Number(gid(type+"_"+id).querySelector(".expand_content").clientHeight-12)+"px";
+
+}
+	
+}
+
+function dismissCard(type,id) {
+
+if (expanded_cards.indexOf(type+"_"+id) > -1) {
+expanded_cards.splice(expanded_cards.indexOf(type+"_"+id),1);
+}
+suspended_cards = false;
+gid(type+"_"+id).style.height = "0px";
+gid(type+"_"+id).style.marginTop = "-12px";
+gid(type+"_"+id).style.opacity = 0;
+	
+}
+
+function disableCard(type,id) {
+
+suspended_cards = true;
+gid(type+"_"+id).querySelector(".actionbar").classList.add("actionbar_disabled");
+	
+}
+
+function appApproveUser(uid) {
+	
+disableCard("user",uid);
+	
+//createPostProgress("Approving account");
+firebase.database().ref('users/'+uid+"/verified").set(true).then(function () {
+
+dismissCard("user",uid);
+//hideAlert();
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function appDeleteUser(uid) {
+disableCard("user",uid);
+	
+//createPostProgress("Approving account");
+firebase.database().ref('users/'+uid+"/delete").set(true).then(function () {
+
+dismissCard("user",uid);
+//hideAlert();
+
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
