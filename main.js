@@ -189,7 +189,7 @@ location.hash = "#groups";
 
 gid("settings_button").style.display = "block";
 gid("welcome_button").style.display = "none";
-if (userjson.verified !== true) {
+if (userjson.verified !== true && userjson.admin !== "admin") {
 gid("home_button").style.display = "none";
 gid("points_button").style.display = "none";
 gid("groups_button").style.display = "none";
@@ -294,10 +294,12 @@ function loadSettings() {
 gid("ac_uid").innerHTML = "Account ID: "+firebase.auth().currentUser.uid;
 if (firebase.auth().currentUser.emailVerified) {
 	gid("account_settings").style.display = "none";
+	gid("phone_settings").style.display = "block";
 	gid("profile_info").style.display = "block";
 	gid("phone_box").innerHTML = formatPhone(userjson.phone) || "<i>Unknown</i>";
 } else {
 	gid("account_settings").style.display = "block";
+	gid("phone_settings").style.display = "none";
 	gid("profile_info").style.display = "none";
 }
 
@@ -615,6 +617,8 @@ showAlert("Submit account for approval?","Please verify that the following infor
 	
 createPostProgress("Submitting");
 firebase.database().ref('users/'+firebase.auth().currentUser.uid+"/school").set(selected_school).then(function () {
+	
+userjson.school = selected_school;
 
 gid("setup_2").style.display = "none";
 gid("setup_3").style.display = "block";
@@ -623,5 +627,19 @@ hideAlert();
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 
 })
+	
+}
+
+function loadGroups() {
+	
+}
+
+function loadQueue() {
+	
+firebase.database().ref("users").once('value').then(function(snapshot) {
+	
+
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
