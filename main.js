@@ -658,6 +658,15 @@ pendhtml += '<div class="approval_card" id="user_'+Object.keys(users)[i]+'" oncl
 }
 
 queue_content.innerHTML = pendhtml;
+
+expanded_cards = [];
+suspended_cards = false;
+
+if (auto_expand && gid('queue_content').children.length > 0) {
+	
+approveCard(gid('queue_content').children[0].id.split("_")[0],gid('queue_content').children[0].id.split("_")[1]);
+	
+}
 	
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
@@ -665,6 +674,7 @@ queue_content.innerHTML = pendhtml;
 
 var expanded_cards = [];
 var suspended_cards = false;
+var auto_expand = true;
 
 function approveCard(type,id,skip) {
 
@@ -708,6 +718,52 @@ suspended_cards = false;
 gid(type+"_"+id).style.height = "0px";
 gid(type+"_"+id).style.marginTop = "-12px";
 gid(type+"_"+id).style.opacity = 0;
+gid(type+"_"+id).classList.add("dismissed");
+
+if (auto_expand) {
+	
+var elem = gid(type+"_"+id);
+var expanded_yet = false;
+
+while(true) {
+	
+if (elem.nextSibling) {
+if (!elem.nextSibling.classList.contains("dismissed")) {
+	approveCard(elem.nextSibling.id.split("_")[0],elem.nextSibling.id.split("_")[1]);
+	expanded_yet = true;
+	break;
+} else {
+	elem = elem.nextSibling;
+}
+} else {
+	break;
+}
+	
+}
+
+if (!expanded_yet) {
+	
+var elem = gid(type+"_"+id);
+	
+while(true) {
+	
+if (elem.previousSibling) {
+if (!elem.previousSibling.classList.contains("dismissed")) {
+	approveCard(elem.previousSibling.id.split("_")[0],elem.previousSibling.id.split("_")[1]);
+	expanded_yet = true;
+	break;
+} else {
+	elem = elem.previousSibling;
+}
+} else {
+	break;
+}
+	
+}
+	
+}
+
+}
 	
 }
 
