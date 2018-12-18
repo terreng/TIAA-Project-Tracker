@@ -658,7 +658,7 @@ for (var i = 0; i < Object.keys(users).length; i++) {
 	
 var cuser = users[Object.keys(users)[i]];
 
-if (cuser.name != null && cuser.admin !== "admin" && cuser.verified !== true && cuser['delete'] !== true) {
+if (cuser.name != null && cuser.school != null && cuser.admin !== "admin" && cuser.verified !== true && cuser['delete'] !== true) {
 	
 pendhtml += '<div class="approval_card" id="user_'+Object.keys(users)[i]+'" onclick="approveCard(\'user\',\''+Object.keys(users)[i]+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">account_circle</i></div><div class="app_right"><div class="app_title truncate">Account needs approval</div><div class="app_desc truncate">'+htmlescape(cuser.name)+'</div></div></div><div class="expand_content"><div class="prof_top"><img src="'+cuser.picture+'"></img><div>'+htmlescape(cuser.name)+'</div></div><center><div class="prof_details"><div class="prof_detail truncate"><i class="material-icons">email</i>'+htmlescape(cuser.email)+'</div><div class="prof_detail truncate"><i class="material-icons">phone</i>'+formatPhone(cuser.phone)+'</div><div class="prof_detail truncate"><i class="material-icons">account_balance</i>'+htmlescape(cuser.school)+'</div></div></center><div class="actionbar"><div onclick="appDeleteUser(\''+Object.keys(users)[i]+'\')" class="actionbar_item ac_red"><i class="material-icons">close</i>Delete</div><div class="actionbar_item ac_green" onclick="appApproveUser(\''+Object.keys(users)[i]+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
 	
