@@ -974,3 +974,93 @@ font-size: 30px;
 .item_icon .riderappicons {
 font-size: 30px;
 }
+
+.user {
+    overflow: hidden;
+    height: 42px;
+    margin-bottom: 10px;
+}
+
+.user div:nth-child(1) {
+    float: left;
+    width: 42px;
+}
+
+.user div:nth-child(1) img {
+    height: 42px;
+    border-radius: 30px;
+}
+
+.user div:nth-child(2) {
+    font-size: 20px;
+    float: left;
+    line-height: 43px;
+    padding-left: 12px;
+    width: calc(100% - 42px - 73px - 20px);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.user div:nth-child(3) {
+    float: left;
+    font-size: 20px;
+    line-height: 25px;
+    padding-top: 8px;
+    width: 73px;
+    text-align: right;
+}
+
+.user div:nth-child(3) i {
+    font-size: 26px;
+    vertical-align: top;
+    padding-left: 2px;
+}
+
+.group_title {
+	font-size: 21px;
+    padding-bottom: 10px;
+}
+
+.assign {
+    color: #057fe0;
+    text-align: center !important;
+    border-width: 1.5px;
+    border-color: #057fe0;
+    border-radius: 2px;
+    border-style: solid;
+    padding-bottom: 9px;
+    margin-top: 5px;
+    line-height: 12px !important;
+}
+
+.post_attach {
+    height: 32px;
+    margin-bottom: 10px;
+	cursor: pointer;
+	float: left;
+	width: 100%;
+}
+
+.post_attach:hover {
+    color: dimgrey;
+}
+
+.pa_left {
+	float: left;
+}
+
+.pa_left .material-icons {
+	font-size: 32px;
+}
+
+.pa_right {
+    float: left;
+    font-size: 22px;
+    padding-top: 2px;
+    padding-left: 7px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: calc(100% - 40px);
+}

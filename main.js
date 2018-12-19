@@ -316,6 +316,12 @@ if (firebase.auth().currentUser.emailVerified) {
 }
 
 function showAlert(title,message,type,yesfunction) {
+if (type == "cancel") {
+gid("panel-bottomA").style.display = "block";
+gid("p_cancel").style.display = "block";
+gid("p_ok").style.display = "none";
+} else {
+gid("p_ok").style.display = "block";
 if (type == "confirm") {
 gid("panel-bottomA").style.display = "block";
 gid("p_cancel").style.display = "block";
@@ -324,10 +330,18 @@ gid("p_ok").classList.add("red")
 gid("p_ok_link").onclick = function () {yesfunction()}
 } else {
 gid("p_ok").classList.remove("red")
+
+
 if (type == "submit") {
 gid("panel-bottomA").style.display = "block";
 gid("p_cancel").style.display = "block";
 gid("p_ok").innerHTML = "SUBMIT"
+gid("p_ok_link").onclick = function () {yesfunction()}
+} else {
+if (type == "done") {
+gid("panel-bottomA").style.display = "block";
+gid("p_cancel").style.display = "none";
+gid("p_ok").innerHTML = "DONE"
 gid("p_ok_link").onclick = function () {yesfunction()}
 } else {
 if (type == "tryagain") {
@@ -345,6 +359,10 @@ gid("p_cancel").style.display = "none";
 gid("p_ok").innerHTML = "OK"
 }
 }
+}
+}
+
+
 }
 }
 gid("panel-title").innerHTML = title;
@@ -644,19 +662,122 @@ function loadGroups() {
 	
 gid("users_list").style.display = "block";
 gid("groups_list").style.display = "none";
+
+user_list_content.innerHTML = real_spinner;
+
+firebase.database().ref("groups").once('value').then(function(snapshot) {
+groups = snapshot.val();
+firebase.database().ref("users").once('value').then(function(snapshot) {
+	
+users = snapshot.val();
+var pendhtml = "";
+
+if (groups != null) {
+for (var i = 0; i < Object.keys(groups).length; i++) {
+var cgroup = groups[Object.keys(groups)[i]];
+if (cgroup != null && cgroup.members != null && cgroup.members.length > 0) {
+pendhtml += "<div class='group_title'>"+htmlescape(cgroup.name)+"</div>";
+for (var e = 0; e < cgroup.members.length; e++) {
+var cuser = users[cgroup.members[e]];
+pendhtml += "<div class='user'><div><img src='"+cuser.picture.split("/mo/").join("/s84/")+"'></img></div><div>"+htmlescape(cuser.name)+"</div><div>0<i class='material-icons'>stars</i></div></div>";
+users[cgroup.members[e]].ingroup = true;
+}
+}
+}
+}
+
+var nogrouphtml = "";
+if (users != null) {
+for (var i = 0; i < Object.keys(users).length; i++) {
+var cuser = users[Object.keys(users)[i]];
+if (cuser.ingroup !== true && cuser.admin != "admin" && cuser.verified == true) {
+	nogrouphtml += "<div class='user'><div><img src='"+cuser.picture.split("/mo/").join("/s84/")+"'></img></div><div>"+htmlescape(cuser.name)+"</div><div class='assign' onclick='assignUser("+i+")'>Assign</div></div>";
+}
+}
+}
+if (nogrouphtml != "") {
+	nogrouphtml = "<div class='group_title'>Unassigned</div>"+nogrouphtml;
+	pendhtml = nogrouphtml+pendhtml;
+}
+
+gid("user_list_content").innerHTML = pendhtml;
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
+
+function assignUser(id) {
+	
+var cuser = users[Object.keys(users)[id]];
+var pendhtml = "<div style='overflow: hidden; margin-bottom: -10px;'>";
+
+for (var i = 0; i < Object.keys(groups).length; i++) {
+var cgroup = groups[Object.keys(groups)[i]];
+
+var userstring = " (0 members)"
+if (cgroup.members != null && cgroup.members.length > 0) {
+if (cgroup.members.length > 1) {
+userstring = " (1 member)"
+} else {
+userstring = " ("+cgroup.members.length+" members)"
+}
+}
+
+pendhtml += '<div class="post_attach" onclick="confirmAssign('+id+','+i+')"><div class="pa_left"><i class="material-icons">group</i></div><div class="pa_right">'+htmlescape(cgroup.name)+userstring+'</div></div>'
+	
+}
+
+pendhtml += "</div>"
+
+showAlert('Choose group for "'+htmlescape(cuser.name)+'"',pendhtml,"cancel",function() {});
+	
+}
+
+function confirmAssign(userid,groupid) {
+	
+showAlert('Assign user "'+htmlescape(users[Object.keys(users)[userid]].name)+'" to group "'+htmlescape(groups[Object.keys(groups)[groupid]].name)+'"?',"","confirm",function(){actualAssign(userid,groupid)});
+	
+}
+
+function actualAssign(userid,groupid) {
+
+createPostProgress("Assigning user")
+
+firebase.database().ref("users/"+Object.keys(users)[userid]+"/group").set(Object.keys(groups)[groupid]).then(function() {
+	
+var mem_array = groups[Object.keys(groups)[groupid]].members;
+if (mem_array != null) {
+	mem_array.push(Object.keys(users)[userid]);
+} else {
+	mem_array = [Object.keys(users)[userid]];
+}
+	
+firebase.database().ref("groups/"+Object.keys(groups)[groupid]+"/members").set(mem_array).then(function() {
+	
+hideAlert();
+loadGroups();
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+
+}
+
+var groups;
+
+var real_spinner = '<div class="real_spinner"><svg class="spinner" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle class="path" fill="none" stroke-width="10" stroke-linecap="butt" cx="50" cy="50" r="40"></circle></svg></div>';
 
 function manageGroups() {
 	
 gid("users_list").style.display = "none";
 gid("groups_list").style.display = "block";
 
-group_list_content.innerHTML = "Loading..."
+group_list_content.innerHTML = real_spinner;
 
 firebase.database().ref("groups").once('value').then(function(snapshot) {
 	
-var groups = snapshot.val();
+groups = snapshot.val();
 var pendhtml = "";
 
 if (groups != null) {
@@ -675,7 +796,7 @@ if (group.members.length > 1) {
 	group_s = "No group members"
 }
 	
-pendhtml += '<div class="post_item"><div class="item_left"><div style="font-size: 25px;" class="ell">'+group.name+'</div><div style="font-size: 17px; padding-top: 3px;" class="ell">'+group_s+'</div></div><div class="item_right"><a title="Edit groups" onclick="editGroup('+i+')"><div class="item_icon item_icon_inv"><i class="material-icons">edit</i></div></a><a title="Delete group" onclick="deleteGroup('+i+')"><div class="item_icon item_icon_inv"><i class="material-icons">delete</i></div></a></div></div>';
+pendhtml += '<div class="post_item"><div class="item_left"><div style="font-size: 25px;" class="ell">'+htmlescape(group.name)+'</div><div style="font-size: 17px; padding-top: 3px;" class="ell">'+group_s+'</div></div><div class="item_right"><a title="Edit groups" onclick="editGroup('+i+')"><div class="item_icon item_icon_inv"><i class="material-icons">edit</i></div></a><a title="Delete group" onclick="deleteGroup('+i+')"><div class="item_icon item_icon_inv"><i class="material-icons">delete</i></div></a></div></div>';
 	
 }
 }
@@ -690,11 +811,50 @@ group_list_content.innerHTML = '<div style="text-align: -webkit-center;font-size
 	
 }
 
-function editGroup() {
+function editGroup(id) {
+	
+showAlert("Edit group",'<input onkeypress="if(event.keyCode==13) {valEditGroup('+id+')}" class="c_text" id="groupname" placeholder="New group name"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="group_error_text"></div>',"submit",function() {valEditGroup(id)});
+
+groupname.focus();
+groupname.value = groups[Object.keys(groups)[id]].name;
 	
 }
 
-function deleteGroup() {
+function valEditGroup(id) {
+	
+var gn = groupname.value;
+
+if (gn.length > 0) {
+	
+createPostProgress("Updating group");
+	
+firebase.database().ref("groups/"+Object.keys(groups)[id]+"/name").set(gn).then(function(snap) {
+	
+hideAlert();
+manageGroups();
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+} else {
+	group_error_text.innerHTML = "Please enter a group name";
+}
+	
+}
+
+function deleteGroup(id) {
+	
+showAlert('Delete "'+htmlescape(groups[Object.keys(groups)[id]].name)+'" group?',"This action cannot be undone<div style='padding-top: 10px'></div>Group members will not be deleted","confirm",function(){confirmDeleteGroup(id)});
+	
+}
+
+function confirmDeleteGroup(id) {
+	
+firebase.database().ref("groups/"+Object.keys(groups)[id]).set(null).then(function(snap) {
+	
+hideAlert();
+manageGroups();
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
 
@@ -735,16 +895,19 @@ function groupsBack() {
 	
 gid("users_list").style.display = "block";
 gid("groups_list").style.display = "none";
+loadGroups();
 	
 }
 
+var users;
+
 function loadQueue() {
 	
-queue_content.innerHTML = "Loading..."
+queue_content.innerHTML = real_spinner;
 	
 firebase.database().ref("users").once('value').then(function(snapshot) {
 	
-var users = snapshot.val();
+users = snapshot.val();
 var pendhtml = "";
 
 if (users != null) {
