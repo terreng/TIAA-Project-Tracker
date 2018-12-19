@@ -899,3 +899,78 @@ height: 218px;
 .dismissed {
 	pointer-events: none;
 }
+
+.post_item {
+background-color: #616161;
+height: 65px;
+color: white;
+border-radius: 3px;
+margin-bottom: 15px;
+}
+
+.item_left {
+padding: 5px 7px;
+width: calc(100% - 107px);
+float: left;
+}
+
+.item_right {
+width: 93px;
+float: left;
+}
+
+.rem_left {
+padding: 5px 7px;
+width: calc(100% - 149px);
+float: left;
+}
+
+.rem_right {
+width: 126px;
+float: left;
+}
+
+.four_left {
+	padding: 5px 7px;
+    width: calc(100% - 191px);
+    float: left;
+}
+
+.four_right {
+    width: 174px;
+    float: left;
+}
+
+.us_left {
+padding: 5px 7px;
+width: calc(100% - 65px);
+float: left;
+}
+
+.us_right {
+width: 42px;
+float: left;
+}
+
+.item_icon {
+padding-top: 9px;
+padding-bottom: 9px;
+padding-left: 6px;
+padding-right: 6px;
+margin-top: 8px;
+margin-bottom: 8px;
+float: left;
+border-radius: 2px;
+}
+
+.item_icon:hover {
+background-color: #8c8c8c;
+}
+
+.item_icon .material-icons {
+font-size: 30px;
+}
+
+.item_icon .riderappicons {
+font-size: 30px;
+}

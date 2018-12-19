@@ -150,13 +150,13 @@ TIAA Pro Track
 </div>
 </a>
 <a >
-<div class="option" id="groups_button" onclick="switchSection('groups')">
-<i class="material-icons sidebar-icons">group</i>Manage Groups
+<div class="option" id="queue_button" onclick="switchSection('queue')">
+<i class="material-icons sidebar-icons">check_circle_outline</i>Approval Queue
 </div>
 </a>
 <a >
-<div class="option" id="queue_button" onclick="switchSection('queue')">
-<i class="material-icons sidebar-icons">check_circle_outline</i>Approval Queue
+<div class="option" id="groups_button" onclick="switchSection('groups')">
+<i class="material-icons sidebar-icons">group</i>Groups & Users
 </div>
 </a>
 <a >
@@ -281,6 +281,41 @@ Your account must be approved and assigned to a group before you have access the
 
 <div class="tabcontent" id="groups_content">
 
+<div class="container" id="users_list" style="display: block;">
+
+<div class="buttons">
+<a onclick="manageGroups()">
+<div class="button" style="float: right; margin-right: 0; margin-bottom: 15px;">
+Manage groups
+</div>
+</a>
+</div>
+
+</div>
+
+<div class="container" id="groups_list" style="display: none;">
+
+<div class="buttons">
+<a onclick="createGroup()">
+<div class="button" style="float: right; margin-right: 0; margin-bottom: 15px;">
+Create a new group
+</div>
+</a>
+</div>
+
+<div id="group_list_content">
+
+</div>
+
+<div class="buttons" style="display: block;">
+<a onclick="groupsBack()">
+<div class="button gray">
+Back
+</div>
+</a>
+</div>
+
+</div>
 
 </div>
 

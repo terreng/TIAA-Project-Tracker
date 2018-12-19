@@ -187,7 +187,7 @@ gid("points_button").style.display = "block";
 } else {
 gid("groups_button").style.display = "block";
 gid("queue_button").style.display = "block";
-location.hash = "#groups";
+location.hash = "#queue";
 }
 
 gid("settings_button").style.display = "block";
@@ -210,7 +210,7 @@ switchSection(location.hash.split("#")[1])
 switchSection("home")
 }
 
-if (firebase.auth().currentUser.email.indexOf("@apps4pps.net") == -1 && userjson.admin !== "admin") {
+if (firebase.auth().currentUser.email.indexOf("@apps4pps.net") == -1 && userjson.admin !== "admin" && false) {
 	gid("welcome_button").style.display = "none";
 	gid("welcome_content").style.display = "none";
 	showAlert("Invalid email address","The TIAA Project Tracker is only accessible to apps4pps.net domain users","tryagain",function() {logOut()});
@@ -264,8 +264,8 @@ gid("content_title").innerHTML = "Points"
 loadPoints();
 }
 if (tab == "groups") {
-gid("navtitle").innerHTML = "Manage Groups"
-gid("content_title").innerHTML = "Manage Groups"
+gid("navtitle").innerHTML = "Groups & Users"
+gid("content_title").innerHTML = "Groups & Users"
 loadGroups();
 }
 if (tab == "queue") {
@@ -641,6 +641,100 @@ hideAlert();
 }
 
 function loadGroups() {
+	
+gid("users_list").style.display = "block";
+gid("groups_list").style.display = "none";
+	
+}
+
+function manageGroups() {
+	
+gid("users_list").style.display = "none";
+gid("groups_list").style.display = "block";
+
+group_list_content.innerHTML = "Loading..."
+
+firebase.database().ref("groups").once('value').then(function(snapshot) {
+	
+var groups = snapshot.val();
+var pendhtml = "";
+
+if (groups != null) {
+for (var i = 0; i < Object.keys(groups).length; i++) {
+	
+var group = groups[Object.keys(groups)[i]];
+var group_s = "";
+
+if (group.members && group.members.length > 0) {
+if (group.members.length > 1) {
+	group_s = group.members.length+" group members"
+} else {
+	group_s = "1 group member"
+}
+} else {
+	group_s = "No group members"
+}
+	
+pendhtml += '<div class="post_item"><div class="item_left"><div style="font-size: 25px;" class="ell">'+group.name+'</div><div style="font-size: 17px; padding-top: 3px;" class="ell">'+group_s+'</div></div><div class="item_right"><a title="Edit groups" onclick="editGroup('+i+')"><div class="item_icon item_icon_inv"><i class="material-icons">edit</i></div></a><a title="Delete group" onclick="deleteGroup('+i+')"><div class="item_icon item_icon_inv"><i class="material-icons">delete</i></div></a></div></div>';
+	
+}
+}
+
+if (pendhtml.length > 0) {
+group_list_content.innerHTML = pendhtml;
+} else {
+group_list_content.innerHTML = '<div style="text-align: -webkit-center;font-size: 76px;color: gray;"><i class="material-icons">error_outline</i></div><div style="text-align: -webkit-center;font-size: 22px;color:gray;">No groups found</div><div class="padding"></div>';
+}
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function editGroup() {
+	
+}
+
+function deleteGroup() {
+	
+}
+
+function createGroup() {
+	
+showAlert("Create new group",'<input onkeypress="if(event.keyCode==13) {valNewGroup()}" class="c_text" id="groupname" placeholder="Group name"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="group_error_text"></div>',"submit",valNewGroup);
+
+groupname.focus();
+	
+}
+
+function valNewGroup() {
+	
+var gn = groupname.value;
+
+if (gn.length > 0) {
+	
+createPostProgress("Creating group")
+	
+firebase.database().ref("groups").push({
+    name : gn
+}).then(
+function (snap) {
+
+hideAlert();
+manageGroups();
+
+}
+).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+} else {
+	group_error_text.innerHTML = "Please enter a group name";
+}
+	
+}
+
+function groupsBack() {
+	
+gid("users_list").style.display = "block";
+gid("groups_list").style.display = "none";
 	
 }
 
