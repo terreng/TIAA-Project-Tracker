@@ -306,11 +306,73 @@ if (firebase.auth().currentUser.emailVerified) {
 	gid("account_settings").style.display = "none";
 	gid("phone_settings").style.display = "block";
 	gid("profile_info").style.display = "block";
+	gid("group_settings").style.display = "block";
 	gid("phone_box").innerHTML = formatPhone(userjson.phone) || "<i>Unknown</i>";
+	gid("group_settings").innerHTML = real_spinner;
+	
+	if (userjson.group) {
+	firebase.database().ref("groups").once('value').then(function(snapshot) {
+	
+	groups = snapshot.val();
+	
+	if (groups != null && groups[userjson.group] != null) {
+	
+	gid("group_settings").innerHTML = '<div class="profile_group_name">Group: '+htmlescape(groups[userjson.group].name)+'</div>'+real_spinner;
+	
+	for (var i = 0; i < groups[userjson.group].members.length; i++) {
+		
+	if (groups[userjson.group].members[i] != firebase.auth().currentUser.uid) {
+	var c_userid = groups[userjson.group].members[i];
+	firebase.database().ref("users/"+c_userid).once('value').then(function(snapshot) {
+		
+	gotUserInfo(c_userid,snapshot.val());
+		
+	}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	}
+		
+	}
+	if (groups[userjson.group].members.length == 1) {
+		renderUsers();
+	}
+	
+	var usersingroup = {};
+	
+	function gotUserInfo(userid,useridjson) {
+		usersingroup[userid] = useridjson;
+		if (Object.keys(usersingroup).length == groups[userjson.group].members.length-1) {
+			renderUsers();
+		}
+	}
+	
+	function renderUsers() {
+		
+	var pendhtml = '<div class="user"><div><img src="'+firebase.auth().currentUser.photoURL.split("/mo/").join("/s84/")+'"></div><div>'+firebase.auth().currentUser.displayName+'</div><div></div></div>';
+	
+	for (var e = 0; e < Object.keys(usersingroup).length; e++) {
+		
+		var cingroup = usersingroup[Object.keys(usersingroup)[e]];
+		
+		pendhtml += '<div class="user"><div><img src="'+cingroup.picture.split("/mo/").join("/s84/")+'"></div><div>'+cingroup.name+'</div><div><a href="tel:/'+cingroup.phone+'"><i class="material-icons" style="padding-right: 3px;color: black;">call</i></a><a href="sms:/'+cingroup.phone+'"><i class="material-icons" style="padding-left: 5px;color: black;">chat</i></a></div></div>';
+		
+	}
+	
+	gid("group_settings").innerHTML = '<div class="profile_group_name">Group: '+htmlescape(groups[userjson.group].name)+'</div>'+pendhtml;
+		
+	}
+	
+	} else {
+		gid("group_settings").style.display = "none";
+	}
+	
+	}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	} else {
+		gid("group_settings").style.display = "none";
+	}
 } else {
 	gid("account_settings").style.display = "block";
 	gid("phone_settings").style.display = "none";
 	gid("profile_info").style.display = "none";
+	gid("group_settings").style.display = "none";
 }
 
 }

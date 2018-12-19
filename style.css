@@ -1064,3 +1064,10 @@ font-size: 30px;
     text-overflow: ellipsis;
     width: calc(100% - 40px);
 }
+
+
+.profile_group_name {
+    margin-top: -5px;
+    font-size: 20px;
+    padding-bottom: 12px;
+}
