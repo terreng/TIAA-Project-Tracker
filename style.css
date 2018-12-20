@@ -1077,20 +1077,20 @@ font-size: 30px;
     background-color: white;
     float: right;
     padding: 10px;
-    font-size: 21px;
+    font-size: 22px;
     border-radius: 50px;
     margin-right: 8px;
     margin-top: 12px;
-    box-shadow: 0 1px 5px rgba(128, 128, 128, 0.5);
+    box-shadow: 0 1.5px 5px rgba(128, 128, 128, 0.7);
 	transition: 0.3s box-shadow;
 	cursor: pointer;
     margin-bottom: 8px;
 }
 
 .new_button i {
-    font-size: 30px;
+    font-size: 31px;
     vertical-align: top;
-    line-height: 26px;
+    line-height: 27px;
     padding-right: 3px;
     margin-left: -2px;
 }
@@ -1101,7 +1101,7 @@ font-size: 30px;
 }
 
 .new_button:hover, .new_button:active {
-    box-shadow: 0 2px 12px rgba(128, 128, 128, 0.6);
+    box-shadow: 0 3px 12px rgba(128, 128, 128, 0.8);
 }
 
 .task {
@@ -1109,7 +1109,7 @@ font-size: 30px;
     margin-top: 4px;
     margin-left: 9px;
     margin-right: 9px;
-    box-shadow: 0 1.5px 6px rgba(128, 128, 128, 0.5);
+    box-shadow: 0 1.5px 6px rgba(128, 128, 128, 0.7);
     border-radius: 8px;
 }
 
@@ -1118,23 +1118,27 @@ font-size: 30px;
     border-bottom-width: 1.5px;
     border-bottom-style: solid;
     border-color: #c3c3c3;
-    padding-top: 1px;
+    padding-top: 2px;
+    padding-bottom: 1px;
 }
 
 .task_top div:nth-child(1) {
-    font-size: 20px;
+    font-size: 22px;
     float: left;
-    padding: 7px 6px;
-    width: calc(100% - 36px - 12px);
+    padding: 7px 8px;
+    width: calc(100% - 37px - 16px);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .task_top div:nth-child(2) {
 	float: left;
-padding: 5px 4px;
+padding: 4px 3px;
 }
 
 .task_top div:nth-child(2) i {
-	font-size: 28px;
+	font-size: 31px;
 }
 
 .task_status {
@@ -1143,6 +1147,8 @@ padding: 5px 4px;
     border-bottom-style: solid;
     border-color: #c3c3c3;
 	background-color: #f1f1f1;
+	padding-left: 2px;
+    padding-right: 2px;
 }
 
 .task_status div:nth-child(3) {
@@ -1158,14 +1164,14 @@ padding: 5px 4px;
 
 .task_status div:nth-child(2) i {
 	vertical-align: top;
-    font-size: 18px;
-    padding-top: 2px;
+    font-size: 19px;
+    padding-top: 0px;
     padding-left: 1px;	
 }
 
 .task_status div:nth-child(2) {
 	float: left;
-    font-size: 17px;
+    font-size: 18px;
     padding: 6px;
 	width: 90px;
 	padding-right: 7px;
@@ -1174,32 +1180,83 @@ padding: 5px 4px;
 
 .task_status div:nth-child(1) {
     float: left;
-    font-size: 17px;
+    font-size: 18px;
     padding: 6px;
     width: calc(100% - 103px - 12px);
 }
 
 .task_items {
-    padding-bottom: 6px;
-    padding-top: 1px;
+    padding-bottom: 9px;
+    padding-top: 2px;
 }
 
 .task_item {
 	overflow: hidden;
-    padding-top: 5px;
+    padding-top: 10px;
 }
 
 .task_item i {
     float: left;
-    font-size: 24px;
-    padding: 2px 4px;
-	padding-left: 5px;
+    font-size: 25px;
+    padding: 2px 7px;
+	padding-left: 8px;
+}
+
+.edit_list .task_item i {
+    font-size: 30px;
+    padding: 0px 5px;
+    margin-bottom: -1px;
 }
 
 .task_item div {
-    font-size: 19px;
+    font-size: 20px;
     float: left;
     line-height: 24px;
-    width: calc(100% - 33px);
+    width: calc(100% - 40px);
     padding-top: 2px;
+}
+
+.add_item {
+    padding-top: 9px;
+    color: black;
+}
+
+.add_item i {
+    padding: 0px 5px;
+    font-size: 27px;
+    padding-left: 7px;
+    padding-top: 0px;
+}
+
+.task_edit {
+    overflow: hidden;
+    border-bottom-width: 1.5px;
+    border-bottom-style: solid;
+    border-color: #c3c3c3;
+    background-color: #f7f7f7;
+    padding-left: 2px;
+    padding-right: 2px;
+    padding: 2px 2px;
+}
+
+.task_edit div:nth-child(1) {
+    float: left;
+    padding: 6px;
+    font-size: 20px;
+    color: #870000;
+    width: calc(100% - 85px - 12px);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.task_edit div:nth-child(2) {
+    float: left;
+    padding: 2.5px 6px;
+    font-size: 20px;
+    border-style: solid;
+    border-width: 1.5px;
+    border-radius: 7px;
+    margin-top: 2px;
+    color: #2081d6;
 }
