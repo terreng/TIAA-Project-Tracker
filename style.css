@@ -1188,13 +1188,14 @@ font-size: 30px;
 }
 
 .task_items {
-    padding-bottom: 9px;
-    padding-top: 2px;
+    padding-bottom: 4px;
+    padding-top: 7px;
 }
 
 .task_item {
 	overflow: hidden;
-    padding-top: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 
 .task_item i:nth-child(1) {
@@ -1209,12 +1210,13 @@ font-size: 30px;
     font-size: 29px;
     color: gray;
     padding-left: 5px;
-	display: none;
+	display: block;
+	opacity: 0;
 	float: left;
 }
 
 .task_item textarea:focus + i:nth-child(3) {
-	display: block;
+	opacity: 1;
 }
 
 .edit_list .task_item i:nth-child(1) {
@@ -1297,4 +1299,17 @@ font-size: 30px;
     border-radius: 7px;
     margin-top: 2px;
     color: #2081d6;
+}
+
+.item_space {
+	height: 42px;
+}
+
+.item_in_drag {
+    position: fixed;
+    z-index: 100;
+    opacity: 0.9;
+    width: calc(100vw - 18px);
+    box-shadow: 0px 1.5px 11px 0px grey;
+    background: white;
 }
