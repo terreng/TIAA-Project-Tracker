@@ -352,7 +352,7 @@ if (firebase.auth().currentUser.emailVerified) {
 		
 		var cingroup = usersingroup[Object.keys(usersingroup)[e]];
 		
-		pendhtml += '<div class="user"><div><img src="'+cingroup.picture.split("/mo/").join("/s84/")+'"></div><div>'+cingroup.name+'</div><div><a href="tel:/'+cingroup.phone+'"><i class="material-icons" style="padding-right: 3px;color: black;">call</i></a><a href="sms:/'+cingroup.phone+'"><i class="material-icons" style="padding-left: 5px;color: black;">chat</i></a></div></div>';
+		pendhtml += '<div class="user"><div><img src="'+cingroup.picture.split("/mo/").join("/s84/")+'"></div><div>'+cingroup.name+'</div><div><a href="tel:/'+cingroup.phone+'"><i class="material-icons" style="padding-right: 5px;color: black;">call</i></a><a href="sms:/'+cingroup.phone+'"><i class="material-icons" style="padding-left: 7px;color: black;">chat</i></a></div></div>';
 		
 	}
 	
@@ -528,6 +528,12 @@ showAlert("Error","The confirmation text you entered was incorrect. Your account
 }
 
 function loadHome() {
+	
+
+	
+}
+
+function createTask() {
 	
 }
 
@@ -905,7 +911,7 @@ manageGroups();
 
 function deleteGroup(id) {
 	
-showAlert('Delete "'+htmlescape(groups[Object.keys(groups)[id]].name)+'" group?',"This action cannot be undone<div style='padding-top: 10px'></div>Group members will not be deleted","confirm",function(){confirmDeleteGroup(id)});
+showAlert('Delete "'+htmlescape(groups[Object.keys(groups)[id]].name)+'" group?',"This action cannot be undone<div style='padding-top: 10px'></div>All group tasks and lists will be deleted. Group members, their points, and their pictures will not be deleted","confirm",function(){confirmDeleteGroup(id)});
 	
 }
 

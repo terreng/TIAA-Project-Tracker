@@ -1020,6 +1020,7 @@ font-size: 30px;
 .group_title {
 	font-size: 21px;
     padding-bottom: 10px;
+    padding-top: 2px;
 }
 
 .assign {
@@ -1070,4 +1071,135 @@ font-size: 30px;
     margin-top: -5px;
     font-size: 20px;
     padding-bottom: 12px;
+}
+
+.new_button {
+    background-color: white;
+    float: right;
+    padding: 10px;
+    font-size: 21px;
+    border-radius: 50px;
+    margin-right: 8px;
+    margin-top: 12px;
+    box-shadow: 0 1px 5px rgba(128, 128, 128, 0.5);
+	transition: 0.3s box-shadow;
+	cursor: pointer;
+    margin-bottom: 8px;
+}
+
+.new_button i {
+    font-size: 30px;
+    vertical-align: top;
+    line-height: 26px;
+    padding-right: 3px;
+    margin-left: -2px;
+}
+
+.new_button div {
+    display: inline-block;
+    padding-right: 5.5px;
+}
+
+.new_button:hover, .new_button:active {
+    box-shadow: 0 2px 12px rgba(128, 128, 128, 0.6);
+}
+
+.task {
+	background-color: white;
+    margin-top: 4px;
+    margin-left: 9px;
+    margin-right: 9px;
+    box-shadow: 0 1.5px 6px rgba(128, 128, 128, 0.5);
+    border-radius: 8px;
+}
+
+.task_top {
+    overflow: hidden;
+    border-bottom-width: 1.5px;
+    border-bottom-style: solid;
+    border-color: #c3c3c3;
+    padding-top: 1px;
+}
+
+.task_top div:nth-child(1) {
+    font-size: 20px;
+    float: left;
+    padding: 7px 6px;
+    width: calc(100% - 36px - 12px);
+}
+
+.task_top div:nth-child(2) {
+	float: left;
+padding: 5px 4px;
+}
+
+.task_top div:nth-child(2) i {
+	font-size: 28px;
+}
+
+.task_status {
+    overflow: hidden;
+    border-bottom-width: 1.5px;
+    border-bottom-style: solid;
+    border-color: #c3c3c3;
+	background-color: #f1f1f1;
+}
+
+.task_status div:nth-child(3) {
+    margin: 6px;
+    float: left;
+    width: calc(100% - 12px);
+    background: linear-gradient(to right, #1088ff, #ad19d2 83.33%, #d2d2d2 0%);
+    height: 4px;
+    border-radius: 10px;
+    margin-top: 1px;
+    margin-bottom: 7px;
+}
+
+.task_status div:nth-child(2) i {
+	vertical-align: top;
+    font-size: 18px;
+    padding-top: 2px;
+    padding-left: 1px;	
+}
+
+.task_status div:nth-child(2) {
+	float: left;
+    font-size: 17px;
+    padding: 6px;
+	width: 90px;
+	padding-right: 7px;
+	text-align: right;
+}
+
+.task_status div:nth-child(1) {
+    float: left;
+    font-size: 17px;
+    padding: 6px;
+    width: calc(100% - 103px - 12px);
+}
+
+.task_items {
+    padding-bottom: 6px;
+    padding-top: 1px;
+}
+
+.task_item {
+	overflow: hidden;
+    padding-top: 5px;
+}
+
+.task_item i {
+    float: left;
+    font-size: 24px;
+    padding: 2px 4px;
+	padding-left: 5px;
+}
+
+.task_item div {
+    font-size: 19px;
+    float: left;
+    line-height: 24px;
+    width: calc(100% - 33px);
+    padding-top: 2px;
 }
