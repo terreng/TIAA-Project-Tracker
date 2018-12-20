@@ -1111,6 +1111,7 @@ font-size: 30px;
     margin-right: 9px;
     box-shadow: 0 1.5px 6px rgba(128, 128, 128, 0.7);
     border-radius: 8px;
+    margin-bottom: 11px;
 }
 
 .task_top {
@@ -1134,7 +1135,8 @@ font-size: 30px;
 
 .task_top div:nth-child(2) {
 	float: left;
-padding: 4px 3px;
+	padding: 4px 3px;
+	padding-top: 4px;
 }
 
 .task_top div:nth-child(2) i {
@@ -1195,14 +1197,27 @@ padding: 4px 3px;
     padding-top: 10px;
 }
 
-.task_item i {
+.task_item i:nth-child(1) {
     float: left;
     font-size: 25px;
     padding: 2px 7px;
 	padding-left: 8px;
 }
 
-.edit_list .task_item i {
+.task_item i:nth-child(3) {
+    padding: 0;
+    font-size: 29px;
+    color: gray;
+    padding-left: 5px;
+	display: none;
+	float: left;
+}
+
+.task_item textarea:focus + i:nth-child(3) {
+	display: block;
+}
+
+.edit_list .task_item i:nth-child(1) {
     font-size: 30px;
     padding: 0px 5px;
     margin-bottom: -1px;
@@ -1215,6 +1230,29 @@ padding: 4px 3px;
     width: calc(100% - 40px);
     padding-top: 2px;
 }
+
+.edit_list .task_item div {
+    width: calc(100% - 87px);
+}
+
+.task_item textarea {
+    font-size: 20px;
+    float: left;
+    line-height: 24px;
+    width: calc(100% - 40px);
+    padding-top: 2px;
+    margin: 0;
+    border: none;
+    outline: none;
+    font-family: 'roboto', sans-serif;
+    height: 0px;
+	resize: none;
+}
+
+.edit_list .task_item textarea {
+    width: calc(100% - 87px);
+}
+
 
 .add_item {
     padding-top: 9px;

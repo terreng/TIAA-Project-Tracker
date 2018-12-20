@@ -527,13 +527,159 @@ showAlert("Error","The confirmation text you entered was incorrect. Your account
 }
 }
 
+var tasks;
+
 function loadHome() {
 	
+firebase.database().ref("groups/"+userjson.group+"/tasks").once('value').then(function(snapshot) {
+tasks = snapshot.val();
+var pendhtml = "";
 
+for (var i = 0; i < Object.keys(tasks).length; i++) {
+	
+var ctask = tasks[Object.keys(tasks)[i]];
+var taskid = Object.keys(tasks)[i];
+var task_class = '';
+
+var banner = '<div class="task_edit"><div>This is a draft</div><div>Submit</div></div>';
+var task_items = '';
+task_class = "edit_list";
+
+if (ctask.items != null) {
+for (var e = 0; e < Object.keys(ctask.items).length; e++) {
+	
+citem = ctask.items[Object.keys(ctask.items)[e]];
+var itemid = Object.keys(ctask.items)[e];
+	
+task_items += '<div class="task_item" id="item_'+itemid+'"><i class="material-icons">drag_indicator</i><textarea type="text" placeholder="List item" value="'+citem+'"></textarea><i onclick="removeItem(\''+itemid+'\',\''+taskid+'\')" class="material-icons">close</i></div>'
+
+}
+}
+	
+pendhtml += '<div class="task" id="task_'+taskid+'"><div class="task_top"><div>'+ctask.name+'</div><div><i class="material-icons">more_vert</i></div></div>'+banner+'<div class="task_items '+task_class+'">'+task_items+'<div class="task_item add_item" onclick="addItem(\''+taskid+'\')"><i class="material-icons">add</i><div>Add item</div></div></div></div>'
+	
+}
+
+tasks_list.innerHTML = pendhtml;
+
+for (var i = 0; i < tasks_list.children.length; i++) {
+	
+var cctask = tasks_list.children[i];
+
+for (var e = 0; e < cctask.querySelector(".task_items").children.length; e++) {
+	
+var ccitem = cctask.querySelector(".task_items").children[e];
+
+if (!ccitem.classList.contains("add_item") && ccitem.querySelector("textarea")) {
+	
+var textarea = ccitem.querySelector("textarea");
+	
+  textarea.style.height = ""; /* Reset the height*/
+  textarea.style.height = textarea.scrollHeight + "px";
+	
+textarea.oninput = function() {
+  textarea.style.height = ""; /* Reset the height*/
+  textarea.style.height = textarea.scrollHeight + "px";
+  firebase.database().ref("groups/"+userjson.group+"/tasks/"+cctask.id.split("task_")[1]+"/items/"+ccitem.id.split("item_")[1]).set(textarea.value).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+};
+	
+}
+	
+}
+	
+}
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+
+
+function addItem(taskid) {
+	
+var new_item_id = firebase.database().ref().child("groups/"+userjson.group+"/tasks").push().key;
+	
+var new_item = document.createElement("div");
+new_item.classList.add("task_item");
+new_item.id = "item_"+new_item_id;
+new_item.innerHTML = '<i class="material-icons">drag_indicator</i><textarea type="text" value="" placeholder="List item"></textarea><i onclick="removeItem(\''+new_item_id+'\',\''+taskid+'\')" class="material-icons">close</i>';
+
+gid("task_"+taskid).querySelector(".task_items").insertBefore(new_item,gid("task_"+taskid).querySelector(".add_item"));
+
+var textarea = new_item.querySelector("textarea");
+
+textarea.focus();
+
+  textarea.style.height = ""; /* Reset the height*/
+  textarea.style.height = textarea.scrollHeight + "px";
+
+textarea.oninput = function() {
+  textarea.style.height = ""; /* Reset the height*/
+  textarea.style.height = textarea.scrollHeight + "px";
+  firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/"+new_item_id).set(textarea.value).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+};
+
+if (!tasks[taskid].items) {
+	tasks[taskid].items = {};
+}
+tasks[taskid].items[new_item_id] = "";
+
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/"+new_item_id).set("").then(function(snapshot) {
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+
+}
+
+function removeItem(itemid, taskid) {
+	
+if (gid("item_"+itemid).nextElementSibling) {
+	gid("item_"+itemid).nextElementSibling.querySelector("textarea").focus();
+} else {
+if (gid("item_"+itemid).previousElementSibling) {
+	gid("item_"+itemid).previousElementSibling.querySelector("textarea").focus();
+}
+}
+	
+gid("item_"+itemid).parentElement.removeChild(gid("item_"+itemid));
+	
+tasks[taskid].items[itemid] = null;
+
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/"+itemid).set(null).then(function(snapshot) {
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
 
 function createTask() {
+	
+showAlert("Create a new task",'<input onkeypress="if(event.keyCode==13) {valNewTask()}" class="c_text" id="taskname" placeholder="Task name"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="group_error_text"></div>',"submit",valNewTask);
+
+taskname.focus();
+	
+}
+
+function valNewTask() {
+	
+var gn = taskname.value;
+
+if (gn.length > 0) {
+	
+createPostProgress("Creating taskname")
+	
+firebase.database().ref("groups/"+userjson.group+"/tasks").push({
+    name : gn
+}).then(
+function (snap) {
+
+hideAlert();
+loadHome();
+
+}
+).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+} else {
+	group_error_text.innerHTML = "Please enter a task name";
+}
 	
 }
 
