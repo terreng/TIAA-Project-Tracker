@@ -590,7 +590,7 @@ if (!ccitem.classList.contains("add_item") && ccitem.querySelector("textarea")) 
 	
 var textarea = tasks_list.children[i].querySelector(".task_items").children[e].querySelector("textarea");
 	
-initTextarea(textarea,cctask);
+initTextarea(textarea,cctask.id.split("task_")[1]);
 	
 }
 	
@@ -607,30 +607,63 @@ taskRef.on('value', function(snapshot) {
 	
 }
 
-function initTextarea(textarea,cctask) {
+function initTextarea(textarea,cctaskid) {
   textarea.style.height = ""; /* Reset the height*/
   textarea.style.height = textarea.scrollHeight + "px";
 	
 textarea.oninput = function() {
   textarea.style.height = ""; /* Reset the height*/
   textarea.style.height = textarea.scrollHeight + "px";
-  firebase.database().ref("groups/"+userjson.group+"/tasks/"+cctask.id.split("task_")[1]+"/items/"+textarea.parentElement.id.split("item_")[1]+"/text").set(textarea.value).catch(function(error) {showAlert("Error","Error code: "+error.code)});
-  tasks[cctask.id.split("task_")[1]].items[textarea.parentElement.id.split("item_")[1]].text = textarea.value;
+  firebase.database().ref("groups/"+userjson.group+"/tasks/"+cctaskid+"/items/"+textarea.parentElement.id.split("item_")[1]+"/text").set(textarea.value).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+  tasks[cctaskid].items[textarea.parentElement.id.split("item_")[1]].text = textarea.value;
 };
 
-textarea.onkeypress = function(event) {
+textarea.onkeydown = function(event) {
 	
 if (event.keyCode==13) {
 	event.preventDefault();
 	var next = textarea.parentElement.nextSibling;
 if (next.classList.contains("add_item")) {
-	addItem(cctask.id.split("task_")[1]);
+	addItem(cctaskid);
 } else {
+	addItem(cctaskid,Number(textarea.previousElementSibling.id.split("drag_")[1])+1);
 	var newbox = textarea.parentElement.nextSibling.querySelector("textarea");
 	newbox.selectionStart = newbox.value.length;
 	newbox.selectionEnd = newbox.value.length;
 	newbox.focus();
 }
+}
+
+if (event.keyCode==8) {
+	if (textarea.value.length == 0) {
+		event.preventDefault();
+		var newbox = false;
+		if (textarea.parentElement.previousSibling) {
+		newbox = textarea.parentElement.previousSibling.querySelector("textarea");
+		} else {
+		if (textarea.parentElement.nextSibling && textarea.parentElement.nextSibling.querySelector("textarea")) {
+		newbox = textarea.parentElement.nextSibling.querySelector("textarea");
+		}
+		}
+		if (newbox) {
+		newbox.selectionStart = newbox.value.length;
+		newbox.selectionEnd = newbox.value.length;
+		newbox.focus();
+		}
+		removeItem(textarea.parentElement.id.split("item_")[1],cctaskid);
+	} else {
+	if (textarea.selectionStart == 0 && textarea.selectionEnd == 0 && textarea.parentElement.previousSibling) {
+		event.preventDefault();
+		var newbox = textarea.parentElement.previousSibling.querySelector("textarea");
+		var orig_length = newbox.value.length;
+		newbox.value += textarea.value;
+		newbox.selectionStart = orig_length;
+		newbox.selectionEnd = orig_length;
+		removeItem(textarea.parentElement.id.split("item_")[1],cctaskid);
+		newbox.focus();
+		newbox.oninput()
+	}
+	}
 }
 	
 }
@@ -778,65 +811,60 @@ firebase.database().ref("groups/"+userjson.group+"/tasks/"+inDragTask+"/items").
 }
 
 
-function addItem(taskid) {
+function addItem(taskid,index) {
 	
 if (tasks[taskid].items && Object.keys(tasks[taskid].items).length > 9) {
-	return true;
+	return false;
 }
 	
-var new_item_id = firebase.database().ref().child("groups/"+userjson.group+"/tasks").push().key;
+if (index) {
+for (var i = 0; i < Object.keys(tasks[taskid].items).length; i++) {
+if (tasks[taskid].items[Object.keys(tasks[taskid].items)[i]].pos > index-1) {
+	tasks[taskid].items[Object.keys(tasks[taskid].items)[i]].pos += 1;
+}
+}
+}
+	
+var new_item_id = firebase.database().ref().child("groups/"+userjson.group+"/tasks/"+taskid+"/items").push().key;
 	
 var new_item = document.createElement("div");
 new_item.classList.add("task_item");
 new_item.id = "item_"+new_item_id;
 new_item.innerHTML = '<i class="material-icons">drag_indicator</i><textarea type="text" value="" placeholder="List item"></textarea><i onclick="removeItem(\''+new_item_id+'\',\''+taskid+'\')" class="material-icons">close</i>';
 
+if (index != null) {
+gid("task_"+taskid).querySelector(".task_items").insertBefore(new_item,gid("drag_"+index).parentElement);
+} else {
 gid("task_"+taskid).querySelector(".task_items").insertBefore(new_item,gid("task_"+taskid).querySelector(".add_item"));
+}
 
 var textarea = new_item.querySelector("textarea");
 
 textarea.focus();
 
-  textarea.style.height = ""; /* Reset the height*/
-  textarea.style.height = textarea.scrollHeight + "px";
+initTextarea(textarea,taskid)
 
-textarea.oninput = function() {
-  textarea.style.height = ""; /* Reset the height*/
-  textarea.style.height = textarea.scrollHeight + "px";
-  firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/"+new_item_id+"/text").set(textarea.value).catch(function(error) {showAlert("Error","Error code: "+error.code)});
-  tasks[taskid].items[new_item_id].text = textarea.value;
-};
-
-textarea.onkeypress = function(event) {
-	
-if (event.keyCode==13) {
-	event.preventDefault();
-var next = textarea.parentElement.nextSibling;
-if (next.classList.contains("add_item")) {
-	addItem(taskid);
-} else {
-	var newbox = textarea.parentElement.nextSibling.querySelector("textarea");
-	newbox.selectionStart = newbox.value.length;
-	newbox.selectionEnd = newbox.value.length;
-	newbox.focus();
-}
-}
-	
-}
-
-textarea.previousElementSibling.addEventListener("touchstart", function(e) {itemDragStart(e)}, false);
-textarea.previousElementSibling.id = "drag_"+(Object.keys(tasks[taskid].items || {}).length);
+textarea.previousElementSibling.id = "drag_"+(index || Object.keys(tasks[taskid].items || {}).length);
 
 if (!tasks[taskid].items) {
 	tasks[taskid].items = {};
 }
+
 tasks[taskid].items[new_item_id] = {};
 tasks[taskid].items[new_item_id].text = "";
-tasks[taskid].items[new_item_id].pos = Object.keys(tasks[taskid].items).length-1;
+tasks[taskid].items[new_item_id].pos = index || Object.keys(tasks[taskid].items).length-1;
 
-firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/"+new_item_id).set(tasks[taskid].items[new_item_id]).then(function(snapshot) {
+redrawJustOrder(taskid);
+
+if (index) {
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/").set(tasks[taskid].items).then(function(snapshot) {
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+} else {
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/"+new_item_id).set(tasks[taskid].items[new_item_id]).then(function(snapshot) {
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}
 
 }
 
@@ -854,7 +882,19 @@ gid("item_"+itemid).parentElement.removeChild(gid("item_"+itemid));
 
 var deleted_item_pos = tasks[taskid].items[itemid].pos;
 
+for (var i = 0; i < Object.keys(tasks[taskid].items).length; i++) {
+	
+var thisitem = tasks[taskid].items[Object.keys(tasks[taskid].items)[i]];
+
+if (thisitem.pos > deleted_item_pos) {
+	tasks[taskid].items[Object.keys(tasks[taskid].items)[i]].pos -= 1;
+}
+	
+}
+
 delete tasks[taskid].items[itemid];
+
+redrawJustOrder(taskid);
 
 firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items").set(tasks[taskid].items).then(function(snapshot) {
 
@@ -889,7 +929,7 @@ for (var i = 0; i < Object.keys(ctask.items).length; i++) {
 var citem = ctask.items[Object.keys(ctask.items)[i]];
 var citemid = Object.keys(ctask.items)[i];
 
-if (!tasks[ctaskid].items[citemid]) {//brand new item
+if (!tasks[ctaskid].items || !tasks[ctaskid].items[citemid]) {//brand new item
 
 var new_item = document.createElement("div");
 new_item.classList.add("task_item");
@@ -900,37 +940,16 @@ gid("task_"+ctaskid).querySelector(".task_items").insertBefore(new_item,gid("tas
 
 var textarea = new_item.querySelector("textarea");
 
-  textarea.style.height = ""; /* Reset the height*/
-  textarea.style.height = textarea.scrollHeight + "px";
+initTextarea(textarea,ctaskid);
 
-textarea.oninput = function() {
-  textarea.style.height = ""; /* Reset the height*/
-  textarea.style.height = textarea.scrollHeight + "px";
-  firebase.database().ref("groups/"+userjson.group+"/tasks/"+ctaskid+"/items/"+citemid+"/text").set(textarea.value).catch(function(error) {showAlert("Error","Error code: "+error.code)});
-  tasks[ctaskid].items[citemid].text = textarea.value;
-};
-
-textarea.onkeypress = function(event) {
-	
-if (event.keyCode==13) {
-	event.preventDefault();
-var next = textarea.parentElement.nextSibling;
-if (next.classList.contains("add_item")) {
-	addItem(ctaskid);
-} else {
-	var newbox = textarea.parentElement.nextSibling.querySelector("textarea");
-	newbox.selectionStart = newbox.value.length;
-	newbox.selectionEnd = newbox.value.length;
-	newbox.focus();
-}
-}
-	
-}
-
-textarea.previousElementSibling.addEventListener("touchstart", function(e) {itemDragStart(e)}, false);
 textarea.previousElementSibling.id = "drag_"+(citem.pos);
 
+if (!tasks[ctaskid].items) {
+	tasks[ctaskid].items = {};
+}
 tasks[ctaskid].items[citemid] = {text: citem.text, pos: citem.pos};
+
+redrawJustOrder(ctaskid);
 	
 } else {
 
@@ -945,7 +964,7 @@ if (tasks[ctaskid].items[citemid].pos != citem.pos) {//update position
 	
 tasks[ctaskid].items[citemid].pos = citem.pos;
 
-redrawJustOrder(ctaskid,citemid);
+redrawJustOrder(ctaskid);
 	
 }
 
@@ -976,6 +995,7 @@ if (!newtasks[ctaskid].items[citemid]) {//item deleted
 	
 gid("item_"+citemid).outerHTML = "";
 delete tasks[ctaskid].items[citemid];
+redrawJustOrder(ctaskid)
 	
 }
 
@@ -984,7 +1004,7 @@ delete tasks[ctaskid].items[citemid];
 }
 }
 
-function redrawJustOrder(ctaskid,citemid) {
+function redrawJustOrder(ctaskid) {
 	
 var task_sort = [];
 
