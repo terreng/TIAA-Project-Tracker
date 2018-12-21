@@ -598,6 +598,11 @@ initTextarea(textarea,cctask);
 	
 }
 
+var taskRef = firebase.database().ref("groups/"+userjson.group+"/tasks");
+taskRef.on('value', function(snapshot) {
+  updateTasksAndLists(snapshot.val());
+});
+
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
@@ -610,7 +615,7 @@ textarea.oninput = function() {
   textarea.style.height = ""; /* Reset the height*/
   textarea.style.height = textarea.scrollHeight + "px";
   firebase.database().ref("groups/"+userjson.group+"/tasks/"+cctask.id.split("task_")[1]+"/items/"+textarea.parentElement.id.split("item_")[1]+"/text").set(textarea.value).catch(function(error) {showAlert("Error","Error code: "+error.code)});
-  tasks[taskid].items[new_item_id].text = textarea.value;
+  tasks[cctask.id.split("task_")[1]].items[textarea.parentElement.id.split("item_")[1]].text = textarea.value;
 };
 
 textarea.onkeypress = function(event) {
@@ -666,15 +671,9 @@ gid("drag_"+who).parentElement.parentNode.insertBefore(empty, gid("drag_"+who).p
 
 gid("drag_"+who).parentElement.classList.add("item_in_drag");
 
-gid("drag_"+who).addEventListener('touchmove', function(event) {
-  itemDragMove(who,event);
-});
-gid("drag_"+who).addEventListener('touchend', function(event) {
-  itemDragEnd();
-});
-gid("drag_"+who).addEventListener('touchcancel', function(event) {
-  itemDragEnd();
-});
+gid("drag_"+who).addEventListener('touchmove', handleTouchMove);
+gid("drag_"+who).addEventListener('touchend', handleTouchEnd);
+gid("drag_"+who).addEventListener('touchcancel', handleTouchEnd);
 
 item_startDragOffset = gid("drag_"+who).parentElement.offsetTop;
 item_startDragPos = who;
@@ -740,9 +739,24 @@ gid("drag_"+who).parentElement.style.top = (dragPosAdj-21)+"px";
 }
 }
 
-function itemDragEnd() {
+function handleTouchMove(event) {
+	itemDragMove(who,event);
+}
+
+function handleTouchEnd(event) {
+	itemDragEnd(who);
+}
+
+function itemDragEnd(who) {
 if (initemdrag) {
 initemdrag = false;
+
+if (who != null) {
+gid("drag_"+who).removeEventListener('touchmove', handleTouchMove);
+gid("drag_"+who).removeEventListener('touchend', handleTouchEnd);
+gid("drag_"+who).removeEventListener('touchcancel', handleTouchEnd);
+}
+
 gid("task_"+inDragTask).querySelector(".task_items").insertBefore(gid("task_"+inDragTask).querySelector(".item_in_drag"),gid("task_"+inDragTask).querySelector(".item_space"));
 gid("task_"+inDragTask).querySelector(".item_in_drag").style.top = "";
 gid("task_"+inDragTask).querySelector(".item_in_drag").classList.remove("item_in_drag");
@@ -838,11 +852,163 @@ if (gid("item_"+itemid).previousElementSibling && gid("item_"+itemid).previousEl
 	
 gid("item_"+itemid).parentElement.removeChild(gid("item_"+itemid));
 
+var deleted_item_pos = tasks[taskid].items[itemid].pos;
+
 delete tasks[taskid].items[itemid];
 
-firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/"+itemid).set(null).then(function(snapshot) {
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items").set(tasks[taskid].items).then(function(snapshot) {
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function updateTasksAndLists(newtasks) {
+
+for (var e = 0; e < Object.keys(newtasks).length; e++) {
+	
+var ctask = newtasks[Object.keys(newtasks)[e]];
+var ctaskid = Object.keys(newtasks)[e];
+
+if (!tasks[ctaskid]) {//brand new task
+	
+} else {
+
+if (tasks[ctaskid].name != ctask.name) {//update name
+	
+gid("task_"+ctaskid).querySelector(".task_top").querySelector("div").innerHTML = htmlescape(ctask.name);
+tasks[ctaskid].name = ctask.name;
+	
+}
+
+if (tasks[ctaskid].status != ctask.status) {//update status
+	
+}
+
+for (var i = 0; i < Object.keys(ctask.items).length; i++) {
+	
+var citem = ctask.items[Object.keys(ctask.items)[i]];
+var citemid = Object.keys(ctask.items)[i];
+
+if (!tasks[ctaskid].items[citemid]) {//brand new item
+
+var new_item = document.createElement("div");
+new_item.classList.add("task_item");
+new_item.id = "item_"+citemid;
+new_item.innerHTML = '<i class="material-icons">drag_indicator</i><textarea type="text" value="" placeholder="List item"></textarea><i onclick="removeItem(\''+citemid+'\',\''+ctaskid+'\')" class="material-icons">close</i>';
+
+gid("task_"+ctaskid).querySelector(".task_items").insertBefore(new_item,gid("task_"+ctaskid).querySelector(".add_item"));
+
+var textarea = new_item.querySelector("textarea");
+
+  textarea.style.height = ""; /* Reset the height*/
+  textarea.style.height = textarea.scrollHeight + "px";
+
+textarea.oninput = function() {
+  textarea.style.height = ""; /* Reset the height*/
+  textarea.style.height = textarea.scrollHeight + "px";
+  firebase.database().ref("groups/"+userjson.group+"/tasks/"+ctaskid+"/items/"+citemid+"/text").set(textarea.value).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+  tasks[ctaskid].items[citemid].text = textarea.value;
+};
+
+textarea.onkeypress = function(event) {
+	
+if (event.keyCode==13) {
+	event.preventDefault();
+var next = textarea.parentElement.nextSibling;
+if (next.classList.contains("add_item")) {
+	addItem(ctaskid);
+} else {
+	var newbox = textarea.parentElement.nextSibling.querySelector("textarea");
+	newbox.selectionStart = newbox.value.length;
+	newbox.selectionEnd = newbox.value.length;
+	newbox.focus();
+}
+}
+	
+}
+
+textarea.previousElementSibling.addEventListener("touchstart", function(e) {itemDragStart(e)}, false);
+textarea.previousElementSibling.id = "drag_"+(citem.pos);
+
+tasks[ctaskid].items[citemid] = {text: citem.text, pos: citem.pos};
+	
+} else {
+
+if (tasks[ctaskid].items[citemid].text != citem.text) {//update text
+	
+gid("item_"+citemid).querySelector("textarea").value = citem.text;
+tasks[ctaskid].items[citemid].text = citem.text;
+	
+}
+
+if (tasks[ctaskid].items[citemid].pos != citem.pos) {//update position
+	
+tasks[ctaskid].items[citemid].pos = citem.pos;
+
+redrawJustOrder(ctaskid,citemid);
+	
+}
+
+}
+	
+}
+}
+}
+
+
+for (var e = 0; e < Object.keys(tasks).length; e++) {
+	
+var ctask = tasks[Object.keys(tasks)[e]];
+var ctaskid = Object.keys(tasks)[e];
+
+if (!newtasks[ctaskid]) {//task deleted
+	
+
+	
+} else {
+	
+for (var i = 0; i < Object.keys(ctask.items).length; i++) {
+	
+var citem = ctask.items[Object.keys(ctask.items)[i]];
+var citemid = Object.keys(ctask.items)[i];
+
+if (!newtasks[ctaskid].items[citemid]) {//item deleted
+	
+gid("item_"+citemid).outerHTML = "";
+delete tasks[ctaskid].items[citemid];
+	
+}
+
+}
+}
+}
+}
+
+function redrawJustOrder(ctaskid,citemid) {
+	
+var task_sort = [];
+
+var titems = tasks[ctaskid].items;
+
+for (var i = 0; i < Object.keys(titems).length; i++) {
+	
+var thisitem = titems[Object.keys(titems)[i]];
+
+task_sort[i] = [thisitem.pos,Object.keys(titems)[i]]
+	
+}
+
+function taskSort(a,b) {
+	return a[0] - b[0];
+}
+task_sort = task_sort.sort(taskSort);
+
+for (var i = 0; i < task_sort.length; i++) {
+
+gid("item_"+task_sort[i][1]).querySelector("i").id = "drag_"+i;
+gid("task_"+ctaskid).querySelector(".task_items").insertBefore(gid("item_"+task_sort[i][1]),gid("task_"+ctaskid).querySelector(".add_item"));
+	
+}
 	
 }
 
