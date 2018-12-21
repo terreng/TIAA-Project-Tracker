@@ -622,16 +622,39 @@ textarea.onkeydown = function(event) {
 	
 if (event.keyCode==13) {
 	event.preventDefault();
+	
+	var newval = "";
+	if (textarea.selectionStart != textarea.value.length) {
+		newval = textarea.value.substring(textarea.selectionStart,textarea.value.length);
+		textarea.value = textarea.value.substring(0,textarea.selectionStart);
+		textarea.oninput();
+	}
+	
 	var next = textarea.parentElement.nextSibling;
 if (next.classList.contains("add_item")) {
-	addItem(cctaskid);
-} else {
-	addItem(cctaskid,Number(textarea.previousElementSibling.id.split("drag_")[1])+1);
-	var newbox = textarea.parentElement.nextSibling.querySelector("textarea");
-	newbox.selectionStart = newbox.value.length;
-	newbox.selectionEnd = newbox.value.length;
+	var additem = addItem(cctaskid);
+	if (additem != false) {
+	var newbox = additem.querySelector("textarea");
+	newbox.value = newval;
+	newbox.selectionStart = 0;
+	newbox.selectionEnd = 0;
 	newbox.focus();
+	newbox.oninput();
+	}
+} else {
+	console.log(Number(textarea.previousElementSibling.id.split("drag_")[1])+1);
+	var additem = addItem(cctaskid,Number(textarea.previousElementSibling.id.split("drag_")[1])+1);
+	if (additem != false) {
+	var newbox = additem.querySelector("textarea");
+	newbox.value = newval;
+	newbox.selectionStart = 0;
+	newbox.selectionEnd = 0;
+	newbox.focus();
+	newbox.oninput();
+	}
 }
+
+
 }
 
 if (event.keyCode==8) {
@@ -645,12 +668,12 @@ if (event.keyCode==8) {
 		newbox = textarea.parentElement.nextSibling.querySelector("textarea");
 		}
 		}
+		removeItem(textarea.parentElement.id.split("item_")[1],cctaskid);
 		if (newbox) {
 		newbox.selectionStart = newbox.value.length;
 		newbox.selectionEnd = newbox.value.length;
 		newbox.focus();
 		}
-		removeItem(textarea.parentElement.id.split("item_")[1],cctaskid);
 	} else {
 	if (textarea.selectionStart == 0 && textarea.selectionEnd == 0 && textarea.parentElement.previousSibling) {
 		event.preventDefault();
@@ -659,9 +682,9 @@ if (event.keyCode==8) {
 		newbox.value += textarea.value;
 		newbox.selectionStart = orig_length;
 		newbox.selectionEnd = orig_length;
+		newbox.oninput();
 		removeItem(textarea.parentElement.id.split("item_")[1],cctaskid);
 		newbox.focus();
-		newbox.oninput()
 	}
 	}
 }
@@ -687,6 +710,8 @@ event.stopPropagation();
 if (initemdrag == true) {
 	return itemDragEnd();
 }
+
+event.target.nextSibling.blur();
 
 inDragTask = event.target.parentElement.parentElement.parentElement.id.split("task_")[1];
 
@@ -833,14 +858,12 @@ new_item.id = "item_"+new_item_id;
 new_item.innerHTML = '<i class="material-icons">drag_indicator</i><textarea type="text" value="" placeholder="List item"></textarea><i onclick="removeItem(\''+new_item_id+'\',\''+taskid+'\')" class="material-icons">close</i>';
 
 if (index != null) {
-gid("task_"+taskid).querySelector(".task_items").insertBefore(new_item,gid("drag_"+index).parentElement);
+gid("task_"+taskid).querySelector(".task_items").insertBefore(new_item,gid("task_"+taskid).querySelector(".task_items").children[index+1]);
 } else {
 gid("task_"+taskid).querySelector(".task_items").insertBefore(new_item,gid("task_"+taskid).querySelector(".add_item"));
 }
 
 var textarea = new_item.querySelector("textarea");
-
-textarea.focus();
 
 initTextarea(textarea,taskid)
 
@@ -856,16 +879,16 @@ tasks[taskid].items[new_item_id].pos = index || Object.keys(tasks[taskid].items)
 
 redrawJustOrder(taskid);
 
-if (index) {
+if (index != null) {
+} else {
+	gid("item_"+new_item_id).querySelector("textarea").focus();
+}
+
 firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/").set(tasks[taskid].items).then(function(snapshot) {
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
-} else {
-firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/"+new_item_id).set(tasks[taskid].items[new_item_id]).then(function(snapshot) {
-	
-}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
-}
 
+return new_item;
 }
 
 function removeItem(itemid, taskid) {
@@ -924,6 +947,7 @@ if (tasks[ctaskid].status != ctask.status) {//update status
 	
 }
 
+if (ctask.items != null) {
 for (var i = 0; i < Object.keys(ctask.items).length; i++) {
 	
 var citem = ctask.items[Object.keys(ctask.items)[i]];
@@ -973,6 +997,7 @@ redrawJustOrder(ctaskid);
 }
 }
 }
+}
 
 
 for (var e = 0; e < Object.keys(tasks).length; e++) {
@@ -985,13 +1010,14 @@ if (!newtasks[ctaskid]) {//task deleted
 
 	
 } else {
-	
+
+if (ctask.items != null) {
 for (var i = 0; i < Object.keys(ctask.items).length; i++) {
 	
 var citem = ctask.items[Object.keys(ctask.items)[i]];
 var citemid = Object.keys(ctask.items)[i];
 
-if (!newtasks[ctaskid].items[citemid]) {//item deleted
+if (!newtasks[ctaskid].items || !newtasks[ctaskid].items[citemid]) {//item deleted
 	
 gid("item_"+citemid).outerHTML = "";
 delete tasks[ctaskid].items[citemid];
@@ -1000,6 +1026,18 @@ redrawJustOrder(ctaskid)
 }
 
 }
+} else {
+
+delete tasks[ctaskid].items;
+var childs = gid("task_"+ctaskid).querySelector(".task_items").children;
+for (var i = 0; i < childs.length; i++) {
+	if (!childs[i].classList.contains("add_item")) {
+		childs[i].outerHTML = "";
+	}
+}
+	
+}
+
 }
 }
 }
