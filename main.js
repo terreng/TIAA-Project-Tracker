@@ -535,6 +535,7 @@ firebase.database().ref("groups/"+userjson.group+"/tasks").once('value').then(fu
 tasks = snapshot.val();
 var pendhtml = "";
 
+if (tasks != null) {
 for (var i = 0; i < Object.keys(tasks).length; i++) {
 	
 var ctask = tasks[Object.keys(tasks)[i]];
@@ -545,19 +546,34 @@ var banner = '<div class="task_edit"><div>This is a draft</div><div>Submit</div>
 var task_items = '';
 task_class = "edit_list";
 
+var task_sort = [];
+
 if (ctask.items != null) {
 for (var e = 0; e < Object.keys(ctask.items).length; e++) {
 	
 citem = ctask.items[Object.keys(ctask.items)[e]];
 var itemid = Object.keys(ctask.items)[e];
 	
-task_items += '<div class="task_item" id="item_'+itemid+'"><i class="material-icons" id="drag_'+e+'">drag_indicator</i><textarea type="text" placeholder="List item">'+citem.text+'</textarea><i onclick="removeItem(\''+itemid+'\',\''+taskid+'\')" class="material-icons">close</i></div>'
+var c_task_item = '<div class="task_item" id="item_'+itemid+'"><i class="material-icons" id="drag_'+citem.pos+'">drag_indicator</i><textarea type="text" placeholder="List item">'+citem.text+'</textarea><i onclick="removeItem(\''+itemid+'\',\''+taskid+'\')" class="material-icons">close</i></div>'
+task_sort[e] = [citem.pos,c_task_item];
 
 }
+}
+
+function taskSort(a,b) {
+	return a[0] - b[0];
+}
+task_sort = task_sort.sort(taskSort);
+
+for (var i = 0; i < task_sort.length; i++) {
+	
+	task_items += task_sort[i][1];
+	
 }
 	
 pendhtml += '<div class="task" id="task_'+taskid+'"><div class="task_top"><div>'+ctask.name+'</div><div><i class="material-icons">more_vert</i></div></div>'+banner+'<div class="task_items '+task_class+'">'+task_items+'<div class="task_item add_item" onclick="addItem(\''+taskid+'\')"><i class="material-icons">add</i><div>Add item</div></div></div></div>'
 	
+}
 }
 
 tasks_list.innerHTML = pendhtml;
@@ -594,6 +610,7 @@ textarea.oninput = function() {
   textarea.style.height = ""; /* Reset the height*/
   textarea.style.height = textarea.scrollHeight + "px";
   firebase.database().ref("groups/"+userjson.group+"/tasks/"+cctask.id.split("task_")[1]+"/items/"+textarea.parentElement.id.split("item_")[1]+"/text").set(textarea.value).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+  tasks[taskid].items[new_item_id].text = textarea.value;
 };
 
 textarea.onkeypress = function(event) {
@@ -659,12 +676,12 @@ gid("drag_"+who).addEventListener('touchcancel', function(event) {
   itemDragEnd();
 });
 
-item_startDragOffset = gid("drag_"+who).parentElement.offsetTop-(gid("drag_"+who).parentElement.parentElement.offsetTop+7);
+item_startDragOffset = gid("drag_"+who).parentElement.offsetTop;
 item_startDragPos = who;
 
-gid("drag_"+who).parentElement.style.top = Number(gid("drag_"+who).parentElement.parentElement.offsetTop+7+16+((42*who)+42-gid("content").scrollTop))+"px";
+gid("drag_"+who).parentElement.style.top = (item_startDragOffset-gid("content").scrollTop)+"px";
 
-item_startPixelOffset = (event.targetTouches[0].pageY-item_startDragOffset);
+item_startPixelOffset = (event.targetTouches[0].pageY-item_startDragOffset)-21;
 }
 
 function itemDragMove(who,event) {
@@ -679,45 +696,46 @@ var dragPosAdj = dragPos - gid("content").scrollTop;
 var maxTopDrag = item_startDragOffset-(42*item_startDragPos);
 var maxBottomDrag = item_startDragOffset+(42*(Object.keys(tasks[inDragTask].items).length-item_startDragPos));
 
-if (dragPos < maxTopDrag-5) {
+if (dragPos < maxTopDrag+18) {
 	
-	dragPosAdj = maxTopDrag-5 - ((maxTopDrag-5-dragPos)/3)/2.5 - gid("content").scrollTop;
-	dragPos = maxTopDrag-6;
+	dragPosAdj = maxTopDrag+18 - ((maxTopDrag+18-dragPos)/3)/2.5 - gid("content").scrollTop;
+	dragPos = maxTopDrag+19;
 	
 };
 
-if (dragPos > maxBottomDrag+5) {
-	dragPosAdj = maxBottomDrag+5 + ((dragPos+5-maxBottomDrag)/3)/2.5 - gid("content").scrollTop;
-	dragPos = maxBottomDrag+6;
+if (dragPos > maxBottomDrag-18) {
+	dragPosAdj = maxBottomDrag-18 + ((dragPos+18-maxBottomDrag)/3)/2.5 - gid("content").scrollTop;
+	dragPos = maxBottomDrag-19;
 
 }
 
-var item_length = Object.keys(tasks[inDragTask].items).length;
-
-for (var i = 0; i < item_length; i++) {
-	
-console.log(dragPos, maxTopDrag)
-
-if (dragPos-24 > maxTopDrag+(i*42) && dragPos-24 < maxBottomDrag-((item_length-i-1)*42)) {
-	console.log(i, item_emptySpacePos);
+for (var i = 0; i < Object.keys(tasks[inDragTask].items).length; i++) {
+if (dragPos > maxTopDrag+(i*42) && dragPos < maxBottomDrag-((Object.keys(tasks[inDragTask].items).length-i-1)*42)) {
 	if (i !== item_emptySpacePos) {
 		document.querySelector(".item_space").outerHTML = "";
-		var gets = gid("drag_"+who).parentElement.parentElement.querySelectorAll(".task_item:not(.item_in_drag)");
-		for (var e = 0; e < gets.length; e++) {
+		var gets = gid("drag_"+who).parentElement.parentElement.querySelectorAll(".task_item:not(.item_in_drag):not(.add_item)");
+		for (var e = 0; e < gets.length+1; e++) {
 			if (i == e) {
 				var empty = document.createElement('div');
 				empty.classList.add("item_space");
 				item_emptySpacePos = e;
 				
-				gets[e].parentNode.insertBefore(empty, gets[e].nextSibling);
+				if (e == Object.keys(tasks[inDragTask].items).length - 1) {
+					gets[0].parentNode.insertBefore(empty, gid("drag_"+who).parentElement.parentElement.querySelector(".add_item"));
+				} else {
+				if (e == 0) {
+					gets[0].parentNode.insertBefore(empty, gets[0]);
+				} else {
+					gets[0].parentNode.insertBefore(empty, gets[e-1].nextSibling);
+				}
+				}
 			}
 		}
-		
 	}
 }
 }
 
-gid("drag_"+who).parentElement.style.top = (gid("drag_"+who).parentElement.parentElement.offsetTop+7+dragPosAdj)+"px";
+gid("drag_"+who).parentElement.style.top = (dragPosAdj-21)+"px";
 	
 }
 }
@@ -725,9 +743,23 @@ gid("drag_"+who).parentElement.style.top = (gid("drag_"+who).parentElement.paren
 function itemDragEnd() {
 if (initemdrag) {
 initemdrag = false;
+gid("task_"+inDragTask).querySelector(".task_items").insertBefore(gid("task_"+inDragTask).querySelector(".item_in_drag"),gid("task_"+inDragTask).querySelector(".item_space"));
+gid("task_"+inDragTask).querySelector(".item_in_drag").style.top = "";
+gid("task_"+inDragTask).querySelector(".item_in_drag").classList.remove("item_in_drag");
+document.querySelector(".item_space").outerHTML = "";
+var childs = gid("task_"+inDragTask).querySelector(".task_items").children;
+var newposarray = {};
+for (var i = 0; i < childs.length; i++) {
+if (!childs[i].classList.contains("add_item")) {
+	childs[i].querySelector("i").id = "drag_"+i;
+	tasks[inDragTask].items[childs[i].id.split("item_")[1]].pos = i;
+	newposarray[childs[i].id.split("item_")[1]] = {};
+	newposarray[childs[i].id.split("item_")[1]].pos = i;
+}
+}
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+inDragTask+"/items").update(tasks[inDragTask].items).then(function(snapshot) {
 
-
-
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }
 }
 
@@ -758,6 +790,7 @@ textarea.oninput = function() {
   textarea.style.height = ""; /* Reset the height*/
   textarea.style.height = textarea.scrollHeight + "px";
   firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/"+new_item_id+"/text").set(textarea.value).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+  tasks[taskid].items[new_item_id].text = textarea.value;
 };
 
 textarea.onkeypress = function(event) {
@@ -777,12 +810,17 @@ if (next.classList.contains("add_item")) {
 	
 }
 
+textarea.previousElementSibling.addEventListener("touchstart", function(e) {itemDragStart(e)}, false);
+textarea.previousElementSibling.id = "drag_"+(Object.keys(tasks[taskid].items || {}).length);
+
 if (!tasks[taskid].items) {
 	tasks[taskid].items = {};
 }
-tasks[taskid].items[new_item_id] = "";
+tasks[taskid].items[new_item_id] = {};
+tasks[taskid].items[new_item_id].text = "";
+tasks[taskid].items[new_item_id].pos = Object.keys(tasks[taskid].items).length-1;
 
-firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/"+new_item_id+"/text").set("").then(function(snapshot) {
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/"+new_item_id).set(tasks[taskid].items[new_item_id]).then(function(snapshot) {
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 
