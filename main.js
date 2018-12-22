@@ -1598,6 +1598,11 @@ queue_content.innerHTML = real_spinner;
 firebase.database().ref("users").once('value').then(function(snapshot) {
 	
 users = snapshot.val();
+
+firebase.database().ref("groups").once('value').then(function(snapshot) {
+	
+groups = snapshot.val();
+
 var pendhtml = "";
 
 if (users != null) {
@@ -1614,6 +1619,40 @@ pendhtml += '<div class="approval_card" id="user_'+Object.keys(users)[i]+'" oncl
 }
 }
 
+if (groups != null) {
+for (var i = 0; i < Object.keys(groups).length; i++) {
+	
+var cgroup = groups[Object.keys(groups)[i]];
+
+if (cgroup.tasks != null) {
+for (var e = 0; e < Object.keys(cgroup.tasks).length; e++) {
+	
+var ctask = cgroup.tasks[Object.keys(cgroup.tasks)[e]];
+var ctaskid = Object.keys(cgroup.tasks)[e];
+var faketaskid = ctaskid.split("_").join("$");
+
+if (ctask.status == "pending") {
+
+pendhtml += '<div class="approval_card" id="taskapp_'+faketaskid+'" onclick="approveCard(\'taskapp\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">list_alt</i></div><div class="app_right"><div class="app_title truncate">Task needs approval</div><div class="app_desc truncate">'+htmlescape(cgroup.name)+": "+htmlescape(ctask.name)+'</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2px;">&quot;'+ctask.name+'&quot; by '+cgroup.name+'</center><div class="actionbar"><div class="actionbar_item ac_red"><i class="material-icons">close</i>Reject</div><div class="actionbar_item ac_green"><i class="material-icons">check</i>Approve</div></div></div></div>'
+	
+}
+
+if (ctask.items != null) {
+for (var r = 0; r < Object.keys(ctask.items).length; r++) {
+	
+var citem = ctask.items[Object.keys(ctask.items)[r]];
+
+
+	
+}
+}
+	
+}
+}
+	
+}
+}
+
 queue_content.innerHTML = pendhtml;
 
 expanded_cards = [];
@@ -1625,6 +1664,7 @@ approveCard(gid('queue_content').children[0].id.split("_")[0],gid('queue_content
 	
 }
 	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
