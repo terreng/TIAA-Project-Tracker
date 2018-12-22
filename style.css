@@ -1200,9 +1200,9 @@ font-size: 30px;
 
 .task_item i:nth-child(1) {
     float: left;
-    font-size: 25px;
-    padding: 2px 7px;
-	padding-left: 8px;
+    font-size: 27px;
+    padding: 1px 6px;
+    padding-left: 7px;
 }
 
 .task_item i:nth-child(3) {
@@ -1246,13 +1246,14 @@ font-size: 30px;
     float: left;
     line-height: 24px;
     width: calc(100% - 44px);
-    padding-top: 2px;
+    padding-top: 3px;
     margin: 0;
     border: none;
     outline: none;
     font-family: 'roboto', sans-serif;
     height: 0px;
 	resize: none;
+	padding-bottom: 1px;
 }
 
 .edit_list .task_item textarea {

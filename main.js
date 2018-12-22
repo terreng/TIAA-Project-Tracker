@@ -539,7 +539,7 @@ tasks = snapshot.val();
 var pendhtml = "";
 
 if (tasks != null) {
-for (var i = 0; i < Object.keys(tasks).length; i++) {
+for (var i = Object.keys(tasks).length-1; i > -1; i--) {
 	
 var ctask = tasks[Object.keys(tasks)[i]];
 var taskid = Object.keys(tasks)[i];
@@ -740,7 +740,7 @@ function itemDragStart(event) {
 event.preventDefault();
 event.stopPropagation();
 
-if (initemdrag == true) {
+if (initemdrag !== false) {
 	return itemDragEnd();
 }
 
@@ -752,30 +752,30 @@ who = Number(event.target.id.split("drag_")[1]);
 
 itemCurrentWho = who;
 
-initemdrag = true;
+initemdrag = who;
 
 var empty = document.createElement('div');
 empty.classList.add("item_space");
 item_emptySpacePos = who;
 
-gid("drag_"+who).parentElement.parentNode.insertBefore(empty, gid("drag_"+who).parentElement.nextSibling);
+gid("task_"+inDragTask).querySelector("#drag_"+who).parentElement.parentNode.insertBefore(empty, gid("task_"+inDragTask).querySelector("#drag_"+who).parentElement.nextSibling);
 
-gid("drag_"+who).parentElement.classList.add("item_in_drag");
+gid("task_"+inDragTask).querySelector("#drag_"+who).parentElement.classList.add("item_in_drag");
 
-gid("drag_"+who).addEventListener('touchmove', handleTouchMove);
-gid("drag_"+who).addEventListener('touchend', handleTouchEnd);
-gid("drag_"+who).addEventListener('touchcancel', handleTouchEnd);
+gid("task_"+inDragTask).querySelector("#drag_"+who).addEventListener('touchmove', handleTouchMove);
+gid("task_"+inDragTask).querySelector("#drag_"+who).addEventListener('touchend', handleTouchEnd);
+gid("task_"+inDragTask).querySelector("#drag_"+who).addEventListener('touchcancel', handleTouchEnd);
 
-item_startDragOffset = gid("drag_"+who).parentElement.offsetTop;
+item_startDragOffset = gid("task_"+inDragTask).querySelector("#drag_"+who).parentElement.offsetTop;
 item_startDragPos = who;
 
-gid("drag_"+who).parentElement.style.top = (item_startDragOffset-gid("content").scrollTop)+"px";
+gid("task_"+inDragTask).querySelector("#drag_"+who).parentElement.style.top = (item_startDragOffset-gid("content").scrollTop)+"px";
 
 item_startPixelOffset = (event.targetTouches[0].pageY-item_startDragOffset)-21;
 }
 
 function itemDragMove(who,event) {
-if (initemdrag) {
+if (initemdrag !== false) {
 
 event.preventDefault();
 event.stopPropagation();
@@ -803,7 +803,7 @@ for (var i = 0; i < Object.keys(tasks[inDragTask].items).length; i++) {
 if (dragPos > maxTopDrag+(i*42) && dragPos < maxBottomDrag-((Object.keys(tasks[inDragTask].items).length-i-1)*42)) {
 	if (i !== item_emptySpacePos) {
 		document.querySelector(".item_space").outerHTML = "";
-		var gets = gid("drag_"+who).parentElement.parentElement.querySelectorAll(".task_item:not(.item_in_drag):not(.add_item)");
+		var gets = gid("task_"+inDragTask).querySelector("#drag_"+who).parentElement.parentElement.querySelectorAll(".task_item:not(.item_in_drag):not(.add_item)");
 		for (var e = 0; e < gets.length+1; e++) {
 			if (i == e) {
 				var empty = document.createElement('div');
@@ -811,7 +811,7 @@ if (dragPos > maxTopDrag+(i*42) && dragPos < maxBottomDrag-((Object.keys(tasks[i
 				item_emptySpacePos = e;
 				
 				if (e == Object.keys(tasks[inDragTask].items).length - 1) {
-					gets[0].parentNode.insertBefore(empty, gid("drag_"+who).parentElement.parentElement.querySelector(".add_item"));
+					gets[0].parentNode.insertBefore(empty, gid("task_"+inDragTask).querySelector("#drag_"+who).parentElement.parentElement.querySelector(".add_item"));
 				} else {
 				if (e == 0) {
 					gets[0].parentNode.insertBefore(empty, gets[0]);
@@ -825,7 +825,7 @@ if (dragPos > maxTopDrag+(i*42) && dragPos < maxBottomDrag-((Object.keys(tasks[i
 }
 }
 
-gid("drag_"+who).parentElement.style.top = (dragPosAdj-21)+"px";
+gid("task_"+inDragTask).querySelector("#drag_"+who).parentElement.style.top = (dragPosAdj-21)+"px";
 	
 }
 }
@@ -835,18 +835,19 @@ function handleTouchMove(event) {
 }
 
 function handleTouchEnd(event) {
-	itemDragEnd(who);
+	itemDragEnd();
 }
 
-function itemDragEnd(who) {
-if (initemdrag) {
+function itemDragEnd(dontsave) {
+if (initemdrag !== false) {
+
+if (initemdrag !== true && inDragTask) {
+gid("task_"+inDragTask).querySelector("#drag_"+initemdrag).removeEventListener('touchmove', handleTouchMove);
+gid("task_"+inDragTask).querySelector("#drag_"+initemdrag).removeEventListener('touchend', handleTouchEnd);
+gid("task_"+inDragTask).querySelector("#drag_"+initemdrag).removeEventListener('touchcancel', handleTouchEnd);
+}
+
 initemdrag = false;
-
-if (who != null) {
-gid("drag_"+who).removeEventListener('touchmove', handleTouchMove);
-gid("drag_"+who).removeEventListener('touchend', handleTouchEnd);
-gid("drag_"+who).removeEventListener('touchcancel', handleTouchEnd);
-}
 
 gid("task_"+inDragTask).querySelector(".task_items").insertBefore(gid("task_"+inDragTask).querySelector(".item_in_drag"),gid("task_"+inDragTask).querySelector(".item_space"));
 gid("task_"+inDragTask).querySelector(".item_in_drag").style.top = "";
@@ -862,9 +863,11 @@ if (!childs[i].classList.contains("add_item")) {
 	newposarray[childs[i].id.split("item_")[1]].pos = i;
 }
 }
+if (dontsave != true) {
 firebase.database().ref("groups/"+userjson.group+"/tasks/"+inDragTask+"/items").update(tasks[inDragTask].items).then(function(snapshot) {
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}
 }
 }
 
@@ -993,6 +996,8 @@ var citemid = Object.keys(ctask.items)[i];
 
 if (!tasks[ctaskid].items || !tasks[ctaskid].items[citemid]) {//brand new item
 
+itemDragEnd(true)
+
 var new_item = document.createElement("div");
 new_item.classList.add("task_item");
 new_item.id = "item_"+citemid;
@@ -1023,6 +1028,8 @@ tasks[ctaskid].items[citemid].text = citem.text;
 }
 
 if (tasks[ctaskid].items[citemid].pos != citem.pos) {//update position
+
+itemDragEnd(true)
 	
 tasks[ctaskid].items[citemid].pos = citem.pos;
 
@@ -1045,6 +1052,8 @@ var ctask = tasks[Object.keys(tasks)[e]];
 var ctaskid = Object.keys(tasks)[e];
 
 if (!newtasks || !newtasks[ctaskid]) {//task deleted
+
+itemDragEnd(true)
 	
 gid("task_"+ctaskid).outerHTML = "";
 delete tasks[ctaskid];
@@ -1062,6 +1071,8 @@ var citem = ctask.items[Object.keys(ctask.items)[i]];
 var citemid = Object.keys(ctask.items)[i];
 
 if (!newtasks[ctaskid].items || !newtasks[ctaskid].items[citemid]) {//item deleted
+
+itemDragEnd(true)
 	
 gid("item_"+citemid).outerHTML = "";
 delete tasks[ctaskid].items[citemid];
