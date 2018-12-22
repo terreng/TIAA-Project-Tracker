@@ -531,7 +531,10 @@ var tasks;
 
 function loadHome() {
 	
+gid('tasks_list').innerHTML = real_spinner;
+	
 firebase.database().ref("groups/"+userjson.group+"/tasks").once('value').then(function(snapshot) {
+	
 tasks = snapshot.val();
 var pendhtml = "";
 
@@ -542,7 +545,7 @@ var ctask = tasks[Object.keys(tasks)[i]];
 var taskid = Object.keys(tasks)[i];
 var task_class = '';
 
-var banner = '<div class="task_edit"><div>This is a draft</div><div>Submit</div></div>';
+var banner = '<div class="task_edit"><div>This is a draft</div><div onclick="submitTask(\''+taskid+'\')">Submit</div></div>';
 var task_items = '';
 task_class = "edit_list";
 
@@ -553,8 +556,18 @@ for (var e = 0; e < Object.keys(ctask.items).length; e++) {
 	
 citem = ctask.items[Object.keys(ctask.items)[e]];
 var itemid = Object.keys(ctask.items)[e];
-	
-var c_task_item = '<div class="task_item" id="item_'+itemid+'"><i class="material-icons" id="drag_'+citem.pos+'">drag_indicator</i><textarea type="text" placeholder="List item">'+citem.text+'</textarea><i onclick="removeItem(\''+itemid+'\',\''+taskid+'\')" class="material-icons">close</i></div>'
+
+var m_icon = "drag_indicator"
+if (tasks[taskid].status != null) {
+	m_icon = "check_box_outline_blank"
+}
+
+var text_disabled = ""
+if (tasks[taskid].status != null) {
+	text_disabled = 'readonly="readonly"'	
+}
+
+var c_task_item = '<div class="task_item" id="item_'+itemid+'"><i class="material-icons" id="drag_'+citem.pos+'">'+m_icon+'</i><textarea '+text_disabled+' type="text" placeholder="List item">'+citem.text+'</textarea><i onclick="removeItem(\''+itemid+'\',\''+taskid+'\')" class="material-icons">close</i></div>'
 task_sort[e] = [citem.pos,c_task_item];
 
 }
@@ -565,19 +578,38 @@ function taskSort(a,b) {
 }
 task_sort = task_sort.sort(taskSort);
 
-for (var i = 0; i < task_sort.length; i++) {
+for (var r = 0; r < task_sort.length; r++) {
 	
-	task_items += task_sort[i][1];
-	
-}
-	
-pendhtml += '<div class="task" id="task_'+taskid+'"><div class="task_top"><div>'+ctask.name+'</div><div><i class="material-icons">more_vert</i></div></div>'+banner+'<div class="task_items '+task_class+'">'+task_items+'<div class="task_item add_item" onclick="addItem(\''+taskid+'\')"><i class="material-icons">add</i><div>Add item</div></div></div></div>'
+	task_items += task_sort[r][1];
 	
 }
+
+if (tasks[taskid].status == "pending") {
+	banner = '<div class="task_edit"><div>Waiting for approval...</div><div onclick="cancelTask(\''+taskid+'\')">Cancel</div></div>';
+}
+
+var task_add = '<div class="task_item add_item" onclick="addItem(\''+taskid+'\')"><i class="material-icons">add</i><div>Add item</div></div>';
+
+if (tasks[taskid].status != null) {
+	task_add = "";
+	task_class = "";
+}
+	
+pendhtml += '<div class="task" id="task_'+taskid+'"><div class="task_top"><div>'+ctask.name+'</div><div><i onclick="taskMenu(\''+taskid+'\')" class="material-icons">more_vert</i></div></div>'+banner+'<div class="task_items '+task_class+'">'+task_items+task_add+'</div></div>'
+	
+}
+}
+
+var none = false;
+
+if (pendhtml.length == 0) {
+pendhtml = '<div class="error_gray"><center><i class="material-icons">list_alt</i></center>No tasks were found</div>';
+none = true;
 }
 
 tasks_list.innerHTML = pendhtml;
 
+if (none != true) {
 for (var i = 0; i < tasks_list.children.length; i++) {
 	
 var cctask = tasks_list.children[i];
@@ -590,12 +622,11 @@ if (!ccitem.classList.contains("add_item") && ccitem.querySelector("textarea")) 
 	
 var textarea = tasks_list.children[i].querySelector(".task_items").children[e].querySelector("textarea");
 	
-initTextarea(textarea,cctask.id.split("task_")[1]);
+initTextarea(textarea,cctask.id.split("task_")[1],textarea.readOnly);
 	
+}	
+}	
 }
-	
-}
-	
 }
 
 var taskRef = firebase.database().ref("groups/"+userjson.group+"/tasks");
@@ -607,9 +638,11 @@ taskRef.on('value', function(snapshot) {
 	
 }
 
-function initTextarea(textarea,cctaskid) {
+function initTextarea(textarea,cctaskid,skipall) {
   textarea.style.height = ""; /* Reset the height*/
   textarea.style.height = textarea.scrollHeight + "px";
+  
+if (skipall !== true) {
 	
 textarea.oninput = function() {
   textarea.style.height = ""; /* Reset the height*/
@@ -642,7 +675,6 @@ if (next.classList.contains("add_item")) {
 	newbox.oninput();
 	}
 } else {
-	console.log(Number(textarea.previousElementSibling.id.split("drag_")[1])+1);
 	var additem = addItem(cctaskid,Number(textarea.previousElementSibling.id.split("drag_")[1])+1);
 	if (additem != false) {
 	var newbox = additem.querySelector("textarea");
@@ -693,6 +725,7 @@ if (event.keyCode==8) {
 
 textarea.previousElementSibling.addEventListener("touchstart", function(e) {itemDragStart(e)}, false);
 
+}
 }
 
 var item_startDragOffset = false;
@@ -927,12 +960,15 @@ firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items").set(
 
 function updateTasksAndLists(newtasks) {
 
+if (newtasks != null) {
 for (var e = 0; e < Object.keys(newtasks).length; e++) {
 	
 var ctask = newtasks[Object.keys(newtasks)[e]];
 var ctaskid = Object.keys(newtasks)[e];
 
-if (!tasks[ctaskid]) {//brand new task
+if (!tasks || !tasks[ctaskid]) {//brand new task
+
+return loadHome();
 	
 } else {
 
@@ -944,6 +980,8 @@ tasks[ctaskid].name = ctask.name;
 }
 
 if (tasks[ctaskid].status != ctask.status) {//update status
+
+return loadHome();
 	
 }
 
@@ -998,16 +1036,22 @@ redrawJustOrder(ctaskid);
 }
 }
 }
+}
 
-
+if (tasks != null) {
 for (var e = 0; e < Object.keys(tasks).length; e++) {
 	
 var ctask = tasks[Object.keys(tasks)[e]];
 var ctaskid = Object.keys(tasks)[e];
 
-if (!newtasks[ctaskid]) {//task deleted
+if (!newtasks || !newtasks[ctaskid]) {//task deleted
 	
+gid("task_"+ctaskid).outerHTML = "";
+delete tasks[ctaskid];
 
+if (tasks_list.children.length == 0) {
+	tasks_list.innerHTML = '<div class="error_gray"><center><i class="material-icons">list_alt</i></center>No tasks were found</div>';
+}
 	
 } else {
 
@@ -1038,6 +1082,7 @@ for (var i = 0; i < childs.length; i++) {
 	
 }
 
+}
 }
 }
 }
@@ -1084,7 +1129,7 @@ var gn = taskname.value;
 
 if (gn.length > 0) {
 	
-createPostProgress("Creating taskname")
+createPostProgress("Creating task")
 	
 firebase.database().ref("groups/"+userjson.group+"/tasks").push({
     name : gn
@@ -1698,6 +1743,115 @@ firebase.database().ref('users/'+uid+"/delete").set(true).then(function () {
 dismissCard("user",uid);
 //hideAlert();
 
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function taskMenu(taskid) {
+	
+var pendhtml = '<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" onclick="renameTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">edit</i></div><div class="pa_right">Edit name</div></div><div class="post_attach" onclick="deleteTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">delete</i></div><div class="pa_right">Delete draft</div></div><div class="post_attach" onclick="submitTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">send</i></div><div class="pa_right">Submit for approval</div></div></div>'
+	
+if (tasks[taskid].status == "pending") {
+	
+var pendhtml = '<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" onclick="cancelTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">close</i></div><div class="pa_right">Cancel approval request</div></div></div>'
+	
+}
+
+showAlert('Task options',pendhtml,"cancel",function() {});
+	
+	
+}
+
+function deleteTask(taskid) {
+	
+showAlert('Are you sure you want to delete this task draft?',"This action cannot be undone<div style='padding-top: 10px'></div>This will also delete the task for all teammates","confirm",function(){confirmDeleteTask(taskid)});
+	
+}
+
+function confirmDeleteTask(taskid) {
+	
+createPostProgress("Deleting task")
+	
+gid("task_"+taskid).outerHTML = "";
+delete tasks[taskid];
+
+if (tasks_list.children.length == 0) {
+	tasks_list.innerHTML = '<div class="error_gray"><center><i class="material-icons">list_alt</i></center>No tasks were found</div>';
+}
+	
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid).set(null).then(function(snap) {
+	
+hideAlert();
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function renameTask(taskid) {
+	
+showAlert("Rename this task",'<input onkeypress="if(event.keyCode==13) {valNewTaskName(\''+taskid+'\')}" class="c_text" id="taskname" placeholder="Task name"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="group_error_text"></div>',"submit",function() {valNewTaskName(taskid)});
+
+taskname.focus();
+taskname.value = tasks[taskid].name;
+	
+}
+
+function valNewTaskName(taskid) {
+	
+var gn = taskname.value;
+
+if (gn.length > 0) {
+	
+createPostProgress("Renaming task")
+	
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/name").set(gn).then(
+function (snap) {
+
+hideAlert();
+
+}
+).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+} else {
+	group_error_text.innerHTML = "Please enter a task name";
+}
+	
+}
+
+function submitTask(taskid) {
+	
+showAlert('Submit this task for approval?',"No changes can be made after this task is submitted","confirm",function(){confirmSubmitTask(taskid)});
+	
+}
+
+function confirmSubmitTask(taskid) {
+	
+createPostProgress("Submitting task")
+
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/status").set("pending").then(function(snap) {
+	
+hideAlert();
+loadHome();
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function cancelTask(taskid) {
+	
+showAlert('Cancel task approval request?',"This will enable you to make changes to this task","confirm",function(){confirmCancelTask(taskid)});
+	
+}
+
+function confirmCancelTask(taskid) {
+	
+createPostProgress("Cancelling approval request")
+
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/status").set(null).then(function(snap) {
+	
+hideAlert();
+loadHome();
+	
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
