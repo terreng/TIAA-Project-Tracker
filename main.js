@@ -619,6 +619,9 @@ if (tasks[taskid].status == "rejected") {
 if (tasks[taskid].status == "approved") {
 	banner = '<div class="task_status"><div>Progress: 0%</div><div>0/'+ctask.points+' <i class="material-icons">stars</i></div><div></div></div>'
 }
+if (tasks[taskid].status == "delete") {
+	banner = '<div class="task_edit"><div>Pending deletion...</div><div onclick="cancelTaskDelete(\''+taskid+'\')">Cancel</div></div>';
+}
 
 var task_add = '<div class="task_item add_item" onclick="addItem(\''+taskid+'\')"><i class="material-icons">add</i><div>Add item</div></div>';
 
@@ -1014,7 +1017,7 @@ tasks[ctaskid].name = ctask.name;
 	
 }
 
-if (tasks[ctaskid].status != ctask.status) {//update status
+if (tasks[ctaskid].status != ctask.status || tasks[ctaskid].points != ctask.points) {//update status, points, or anything else that requires compelete redraw
 
 return loadHome();
 	
@@ -1442,9 +1445,9 @@ var cgroup = groups[Object.keys(groups)[i]];
 var userstring = " (0 members)"
 if (cgroup.members != null && cgroup.members.length > 0) {
 if (cgroup.members.length > 1) {
-userstring = " (1 member)"
-} else {
 userstring = " ("+cgroup.members.length+" members)"
+} else {
+userstring = " (1 member)"
 }
 }
 
@@ -1673,7 +1676,6 @@ var faketaskid = ctaskid.split("_").join("$");
 
 if (ctask.status == "pending") {
 	
-	
 var itemhtml = '<div style="overflow: hidden;padding-bottom: 1px;">';
 var taskitem_sort = [];
 
@@ -1706,6 +1708,43 @@ if (Object.keys(ctask.items).length > 1) {
 }
 
 pendhtml += '<div class="approval_card" id="taskapp_'+faketaskid+'" onclick="approveCard(\'taskapp\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">list_alt</i></div><div class="app_right"><div class="app_title truncate">Task needs approval</div><div class="app_desc truncate">'+htmlescape(cgroup.name)+": "+htmlescape(ctask.name)+'</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">&quot;'+ctask.name+'&quot; by '+cgroup.name+'</center><center style="font-size: 18px;padding-top: 3px;">Task has '+itemam+'</center>'+itemhtml+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appRejectTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">close</i>Reject</div><div class="actionbar_item ac_green" onclick="appApproveTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
+	
+}
+
+if (ctask.status == "delete") {
+	
+var itemhtml = '<div style="overflow: hidden;padding-bottom: 1px;">';
+var taskitem_sort = [];
+
+if (ctask.items != null) {
+for (var r = 0; r < Object.keys(ctask.items).length; r++) {
+var citeml = ctask.items[Object.keys(ctask.items)[r]];
+taskitem_sort[r] = [citeml.pos,'<div style="height: 26px;padding-top: 6px;"><div style="float: left;"><i class="material-icons" style="font-size: 26px;">check_box_outline_blank</i></div><div style="float: left;width: calc(100% - 31px);padding-left: 5px;font-size: 20px;">'+citeml.text+'</div></div>'];
+}
+
+function taskSort(a,b) {
+	return a[0] - b[0];
+}
+taskitem_sort = taskitem_sort.sort(taskSort);
+for (var r = 0; r < taskitem_sort.length; r++) {
+	
+	itemhtml += taskitem_sort[r][1];
+	
+}
+}
+
+itemhtml += '</div>';
+
+var itemam = "no items";
+if (ctask.items && Object.keys(ctask.items)) {
+if (Object.keys(ctask.items).length > 1) {
+	itemam = Object.keys(ctask.items).length+" items"
+} else {
+	itemam = "1 item"
+}
+}
+
+pendhtml += '<div class="approval_card" id="deleteapp_'+faketaskid+'" onclick="approveCard(\'deleteapp\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">delete</i></div><div class="app_right"><div class="app_title truncate">Task deletion request</div><div class="app_desc truncate">'+htmlescape(cgroup.name)+": "+htmlescape(ctask.name)+'</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">Team '+cgroup.name+' has requested to delete task &quot;'+ctask.name+'&quot;</center><center style="font-size: 18px;padding-top: 3px;">Task has '+itemam+'</center>'+itemhtml+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appRejectDelTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">close</i>Restore</div><div class="actionbar_item ac_green" onclick="appApproveDelTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">check</i>Delete</div></div></div></div>'
 	
 }
 
@@ -1880,11 +1919,23 @@ dismissCard("user",uid);
 
 function taskMenu(taskid) {
 	
-var pendhtml = '<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" onclick="renameTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">edit</i></div><div class="pa_right">Edit name</div></div><div class="post_attach" onclick="deleteTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">delete</i></div><div class="pa_right">Delete draft</div></div><div class="post_attach" onclick="submitTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">send</i></div><div class="pa_right">Submit for approval</div></div></div>'
+var pendhtml = '<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" onclick="renameTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">edit</i></div><div class="pa_right">Rename</div></div><div class="post_attach" onclick="deleteTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">delete</i></div><div class="pa_right">Delete draft</div></div><div class="post_attach" onclick="submitTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">send</i></div><div class="pa_right">Submit for approval</div></div></div>'
 	
 if (tasks[taskid].status == "pending") {
 	
-var pendhtml = '<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" onclick="cancelTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">close</i></div><div class="pa_right">Cancel approval request</div></div></div>'
+pendhtml = '<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" onclick="cancelTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">close</i></div><div class="pa_right">Cancel approval request</div></div></div>'
+	
+}
+
+if (tasks[taskid].status == "delete") {
+	
+pendhtml = '<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" onclick="cancelTaskDelete(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">close</i></div><div class="pa_right">Cancel deletion request</div></div></div>'
+	
+}
+
+if (tasks[taskid].status == "approved") {
+	
+pendhtml = '<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" onclick="renameTask(\''+taskid+'\',true)"><div class="pa_left"><i class="material-icons">edit</i></div><div class="pa_right">Rename</div></div><div class="post_attach" onclick="editTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">edit</i></div><div class="pa_right">Edit items</div></div><div class="post_attach" onclick="requestDeleteTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">delete</i></div><div class="pa_right">Delete task</div></div></div>'
 	
 }
 
@@ -1918,20 +1969,64 @@ hideAlert();
 	
 }
 
-function renameTask(taskid) {
+function requestDeleteTask(taskid) {
 	
-showAlert("Rename this task",'<input onkeypress="if(event.keyCode==13) {valNewTaskName(\''+taskid+'\')}" class="c_text" id="taskname" placeholder="Task name"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="group_error_text"></div>',"submit",function() {valNewTaskName(taskid)});
+showAlert('Are you sure you want to delete this task?',"This action requires approval<div style='padding-top: 10px'></div>This delete request can be cancelled anytime before it is approved to restore the task","confirm",function(){confirmDeleteTaskR(taskid)});
+	
+}
+
+function confirmDeleteTaskR(taskid) {
+	
+createPostProgress("Sending task deletion request")
+	
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/status").set("delete").then(function(snap) {
+	
+hideAlert();
+loadHome();
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function renameTask(taskid,penalty) {
+	
+showAlert("Rename this task",'<input onkeypress="if(event.keyCode==13) {valNewTaskName(\''+taskid+'\','+penalty+')}" class="c_text" id="taskname" placeholder="Task name"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="group_error_text"></div>',"submit",function() {valNewTaskName(taskid,penalty)});
 
 taskname.focus();
 taskname.value = tasks[taskid].name;
 	
 }
 
-function valNewTaskName(taskid) {
+function valNewTaskName(taskid,penalty) {
 	
 var gn = taskname.value;
 
 if (gn.length > 0) {
+	
+if (penalty) {
+	
+var newval = tasks[taskid].points-1;
+if (newval < 0) {newval = 0};
+	
+showAlert("Rename task","This action result in the loss of 1 point value for this task<div style='padding-top: 10px'></div>New value: "+newval+" points","confirm",function() {
+	
+createPostProgress("Renaming task")
+	
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid).update({
+	name: gn,
+	points: newval
+}).then(
+function (snap) {
+
+hideAlert();
+loadHome();
+
+}
+).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+})
+	
+} else {
 	
 createPostProgress("Renaming task")
 	
@@ -1942,6 +2037,8 @@ hideAlert();
 
 }
 ).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+
+}
 	
 } else {
 	group_error_text.innerHTML = "Please enter a task name";
@@ -1979,6 +2076,25 @@ function confirmCancelTask(taskid) {
 createPostProgress("Cancelling approval request")
 
 firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/status").set(null).then(function(snap) {
+	
+hideAlert();
+loadHome();
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function cancelTaskDelete(taskid) {
+	
+showAlert('Cancel task deletion request?',"The task will be restored, with no penatly or progress lost","confirm",function(){confirmCancelTaskDelete(taskid)});
+	
+}
+
+function confirmCancelTaskDelete(taskid) {
+	
+createPostProgress("Cancelling deletion request")
+
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/status").set("approved").then(function(snap) {
 	
 hideAlert();
 loadHome();
@@ -2041,6 +2157,34 @@ disableCard("taskapp",fake_task_id);
 firebase.database().ref('groups/'+groupid+"/tasks/"+taskid+"/status").set("rejected").then(function () {
 
 dismissCard("taskapp",fake_task_id);
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function appRejectDelTask(groupid,taskid) {
+	
+var fake_task_id = taskid.split("_").join("$");
+	
+disableCard("deleteapp",fake_task_id);
+
+firebase.database().ref('groups/'+groupid+"/tasks/"+taskid+"/status").set("approved").then(function () {
+
+dismissCard("deleteapp",fake_task_id);
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function appApproveDelTask(groupid,taskid) {
+	
+var fake_task_id = taskid.split("_").join("$");
+	
+disableCard("deleteapp",fake_task_id);
+
+firebase.database().ref('groups/'+groupid+"/tasks/"+taskid).set(null).then(function () {
+
+dismissCard("deleteapp",fake_task_id);
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
