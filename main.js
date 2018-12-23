@@ -20,10 +20,24 @@ function initFunction() {
 	gid("username").value = "";
 	gid("password").value = "";
 	
-	firebase.database().ref("users/"+firebase.auth().currentUser.uid).once('value').then(function(snapshot) { {userjson = snapshot.val(); if (userjson != null) {} else {
-userjson = new Array();
-} afterLogin(); document.getElementById("everything_loader").style.display = "none";}})
+	firebase.database().ref("users/"+firebase.auth().currentUser.uid).once('value').then(function(snapshot) {	
 	
+	userjson = snapshot.val(); 
+	
+	firebase.database().ref("private/"+firebase.auth().currentUser.uid).once('value').then(function(snapshot) {
+	
+	privateuserjson = snapshot.val() || {}; 
+	
+	if (userjson != null) {} else {
+	userjson = new Array();
+	} 
+	
+	afterLogin(); 
+	document.getElementById("everything_loader").style.display = "none";
+
+	}).catch(function(error) {alert("Login error: Error code: "+error.code)});
+	
+	}).catch(function(error) {alert("Login error: Error code: "+error.code)});
 	
   } else {
 document.getElementById("everything_loader").style.display = "none";
@@ -307,7 +321,7 @@ if (firebase.auth().currentUser.emailVerified) {
 	gid("phone_settings").style.display = "block";
 	gid("profile_info").style.display = "block";
 	gid("group_settings").style.display = "block";
-	gid("phone_box").innerHTML = formatPhone(userjson.phone) || "<i>Unknown</i>";
+	gid("phone_box").innerHTML = formatPhone(privateuserjson.phone) || "<i>Unknown</i>";
 	gid("group_settings").innerHTML = real_spinner;
 	
 	if (userjson.group) {
@@ -323,11 +337,7 @@ if (firebase.auth().currentUser.emailVerified) {
 		
 	if (groups[userjson.group].members[i] != firebase.auth().currentUser.uid) {
 	var c_userid = groups[userjson.group].members[i];
-	firebase.database().ref("users/"+c_userid).once('value').then(function(snapshot) {
-		
-	gotUserInfo(c_userid,snapshot.val());
-		
-	}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	getUserData(c_userid);
 	}
 		
 	}
@@ -335,10 +345,22 @@ if (firebase.auth().currentUser.emailVerified) {
 		renderUsers();
 	}
 	
+	function getUserData(c_userid) {
+	firebase.database().ref("users/"+c_userid).once('value').then(function(snapshot) {
+	var thispublicdata = snapshot.val();
+	firebase.database().ref("private/"+c_userid).once('value').then(function(snapshot) {
+	var thisprivatedata = snapshot.val();
+	gotUserInfo(c_userid,thispublicdata,thisprivatedata);
+	}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	}
+	
 	var usersingroup = {};
 	
-	function gotUserInfo(userid,useridjson) {
-		usersingroup[userid] = useridjson;
+	function gotUserInfo(userid,useridjson,useridjsonp) {
+		usersingroup[userid] = [];
+		usersingroup[userid]["public"] = useridjson;
+		usersingroup[userid]["private"] = useridjsonp;
 		if (Object.keys(usersingroup).length == groups[userjson.group].members.length-1) {
 			renderUsers();
 		}
@@ -348,12 +370,16 @@ if (firebase.auth().currentUser.emailVerified) {
 		
 	var pendhtml = '<div class="user"><div><img src="'+firebase.auth().currentUser.photoURL.split("/mo/").join("/s84/")+'"></div><div>'+firebase.auth().currentUser.displayName+'</div><div></div></div>';
 	
+	if (usersingroup != null) {
 	for (var e = 0; e < Object.keys(usersingroup).length; e++) {
 		
 		var cingroup = usersingroup[Object.keys(usersingroup)[e]];
 		
-		pendhtml += '<div class="user"><div><img src="'+cingroup.picture.split("/mo/").join("/s84/")+'"></div><div>'+cingroup.name+'</div><div><a href="tel:/'+cingroup.phone+'"><i class="material-icons" style="padding-right: 5px;color: black;">call</i></a><a href="sms:/'+cingroup.phone+'"><i class="material-icons" style="padding-left: 7px;color: black;">chat</i></a></div></div>';
+		if (cingroup && cingroup['public'] && cingroup['private']) {
+		pendhtml += '<div class="user"><div><img src="'+cingroup['public'].picture.split("/mo/").join("/s84/")+'"></div><div>'+cingroup['public'].name+'</div><div><a href="tel:/'+cingroup['private'].phone+'"><i class="material-icons" style="padding-right: 5px;color: black;">call</i></a><a href="sms:/'+cingroup['private'].phone+'"><i class="material-icons" style="padding-left: 7px;color: black;">chat</i></a></div></div>';
+		}
 		
+	}
 	}
 	
 	gid("group_settings").innerHTML = '<div class="profile_group_name">Group: '+htmlescape(groups[userjson.group].name)+'</div>'+pendhtml;
@@ -558,12 +584,12 @@ citem = ctask.items[Object.keys(ctask.items)[e]];
 var itemid = Object.keys(ctask.items)[e];
 
 var m_icon = "drag_indicator"
-if (tasks[taskid].status != null) {
+if (tasks[taskid].status != null && tasks[taskid].status != "rejected") {
 	m_icon = "check_box_outline_blank"
 }
 
 var text_disabled = ""
-if (tasks[taskid].status != null) {
+if (tasks[taskid].status != null && tasks[taskid].status != "rejected") {
 	text_disabled = 'readonly="readonly"'	
 }
 
@@ -587,10 +613,16 @@ for (var r = 0; r < task_sort.length; r++) {
 if (tasks[taskid].status == "pending") {
 	banner = '<div class="task_edit"><div>Waiting for approval...</div><div onclick="cancelTask(\''+taskid+'\')">Cancel</div></div>';
 }
+if (tasks[taskid].status == "rejected") {
+	banner = '<div class="task_edit"><div>Draft was rejected</div><div onclick="submitTask(\''+taskid+'\')">Submit</div></div>'
+}
+if (tasks[taskid].status == "approved") {
+	banner = '<div class="task_status"><div>Progress: 0%</div><div>0/'+ctask.points+' <i class="material-icons">stars</i></div><div></div></div>'
+}
 
 var task_add = '<div class="task_item add_item" onclick="addItem(\''+taskid+'\')"><i class="material-icons">add</i><div>Add item</div></div>';
 
-if (tasks[taskid].status != null) {
+if (tasks[taskid].status != null && tasks[taskid].status != "rejected") {
 	task_add = "";
 	task_class = "";
 }
@@ -1215,7 +1247,7 @@ if(!String.prototype.trim) {
 function editPhone(setup) {
 showAlert("Edit Phone Number","<input type='phone' class='c_text' id='edit1' placeholder='Phone number'><div id='p_error' style='display: none'></div>","submit",function() {savePhone(setup)});
 gid("edit1").focus();
-gid("edit1").value = userjson.phone || "";
+gid("edit1").value = privateuserjson.phone || "";
 }
 
 function savePhone(setup) {
@@ -1231,13 +1263,13 @@ if (String(newphone).length !== 10) {
 	return gid("p_error").innerHTML = "Error: Invalid phone number"
 }
 createPostProgress("Updating phone number");
-firebase.database().ref('users/'+firebase.auth().currentUser.uid+"/phone").set(newphone).then(function () {
+firebase.database().ref('private/'+firebase.auth().currentUser.uid+"/phone").set(newphone).then(function () {
 
-userjson.phone = newphone;
+privateuserjson.phone = newphone;
 
 if (setup) {
 	
-gid("setup_phone").innerHTML = formatPhone(userjson.phone) || "<i>Enter phone number</i>";
+gid("setup_phone").innerHTML = formatPhone(privateuserjson.phone) || "<i>Enter phone number</i>";
 gid("phone_continue").classList.remove("gray");
 	
 }
@@ -1292,14 +1324,14 @@ if (stepid == 1 && selected_school) {
 gid("setup_1").style.display = "none";
 gid("setup_2").style.display = "block";
 
-gid("setup_phone").innerHTML = formatPhone(userjson.phone) || "<i>Enter phone number</i>";
-if (!userjson.phone) {
+gid("setup_phone").innerHTML = formatPhone(privateuserjson.phone) || "<i>Enter phone number</i>";
+if (!privateuserjson.phone) {
 	gid("phone_continue").classList.add("gray");
 }
 	
 }
 
-if (stepid == 2 && userjson.phone) {
+if (stepid == 2 && privateuserjson.phone) {
 	
 confirmProfile();
 	
@@ -1331,7 +1363,7 @@ function setupPhoneNumber() {
 
 function confirmProfile() {
 	
-showAlert("Submit account for approval?","Please verify that the following information is correct:<br><br>School: "+selected_school+"<br>Phone: "+formatPhone(userjson.phone),"confirm",function() {
+showAlert("Submit account for approval?","Please verify that the following information is correct:<br><br>School: "+selected_school+"<br>Phone: "+formatPhone(privateuserjson.phone),"confirm",function() {
 	
 createPostProgress("Submitting");
 firebase.database().ref('users/'+firebase.auth().currentUser.uid+"/school").set(selected_school).then(function () {
@@ -1369,8 +1401,10 @@ if (cgroup != null && cgroup.members != null && cgroup.members.length > 0) {
 pendhtml += "<div class='group_title'>"+htmlescape(cgroup.name)+"</div>";
 for (var e = 0; e < cgroup.members.length; e++) {
 var cuser = users[cgroup.members[e]];
+if (cuser && cuser.verified == true) {
 pendhtml += "<div class='user'><div><img src='"+cuser.picture.split("/mo/").join("/s84/")+"'></img></div><div>"+htmlescape(cuser.name)+"</div><div>0<i class='material-icons'>stars</i></div></div>";
 users[cgroup.members[e]].ingroup = true;
+}
 }
 }
 }
@@ -1380,7 +1414,7 @@ var nogrouphtml = "";
 if (users != null) {
 for (var i = 0; i < Object.keys(users).length; i++) {
 var cuser = users[Object.keys(users)[i]];
-if (cuser.ingroup !== true && cuser.admin != "admin" && cuser.verified == true) {
+if (cuser && cuser.verified == true && cuser.ingroup !== true && cuser.admin != "admin") {
 	nogrouphtml += "<div class='user'><div><img src='"+cuser.picture.split("/mo/").join("/s84/")+"'></img></div><div>"+htmlescape(cuser.name)+"</div><div class='assign' onclick='assignUser("+i+")'>Assign</div></div>";
 }
 }
@@ -1599,6 +1633,10 @@ firebase.database().ref("users").once('value').then(function(snapshot) {
 	
 users = snapshot.val();
 
+firebase.database().ref("private").once('value').then(function(snapshot) {
+	
+privateusers = snapshot.val() || {};
+
 firebase.database().ref("groups").once('value').then(function(snapshot) {
 	
 groups = snapshot.val();
@@ -1609,10 +1647,11 @@ if (users != null) {
 for (var i = 0; i < Object.keys(users).length; i++) {
 	
 var cuser = users[Object.keys(users)[i]];
+var cprivateuser = privateusers[Object.keys(users)[i]];
 
-if (cuser.name != null && cuser.school != null && cuser.admin !== "admin" && cuser.verified !== true && cuser['delete'] !== true) {
+if (cprivateuser && cuser.name != null && cuser.school != null && cuser.admin !== "admin" && cuser.verified !== true && cuser['delete'] !== true) {
 	
-pendhtml += '<div class="approval_card" id="user_'+Object.keys(users)[i]+'" onclick="approveCard(\'user\',\''+Object.keys(users)[i]+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">account_circle</i></div><div class="app_right"><div class="app_title truncate">Account needs approval</div><div class="app_desc truncate">'+htmlescape(cuser.name)+'</div></div></div><div class="expand_content"><div class="prof_top"><img src="'+cuser.picture+'"></img><div>'+htmlescape(cuser.name)+'</div></div><center><div class="prof_details"><div class="prof_detail truncate"><i class="material-icons">email</i>'+htmlescape(cuser.email)+'</div><div class="prof_detail truncate"><i class="material-icons">phone</i>'+formatPhone(cuser.phone)+'</div><div class="prof_detail truncate"><i class="material-icons">account_balance</i>'+htmlescape(cuser.school)+'</div></div></center><div class="actionbar"><div onclick="appDeleteUser(\''+Object.keys(users)[i]+'\')" class="actionbar_item ac_red"><i class="material-icons">close</i>Delete</div><div class="actionbar_item ac_green" onclick="appApproveUser(\''+Object.keys(users)[i]+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
+pendhtml += '<div class="approval_card" id="user_'+Object.keys(users)[i]+'" onclick="approveCard(\'user\',\''+Object.keys(users)[i]+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">account_circle</i></div><div class="app_right"><div class="app_title truncate">Account needs approval</div><div class="app_desc truncate">'+htmlescape(cuser.name)+'</div></div></div><div class="expand_content"><div class="prof_top"><img src="'+cuser.picture+'"></img><div>'+htmlescape(cuser.name)+'</div></div><center><div class="prof_details"><div class="prof_detail truncate"><i class="material-icons">email</i>'+htmlescape(cprivateuser.email)+'</div><div class="prof_detail truncate"><i class="material-icons">phone</i>'+formatPhone(cprivateuser.phone)+'</div><div class="prof_detail truncate"><i class="material-icons">account_balance</i>'+htmlescape(cuser.school)+'</div></div></center><div class="actionbar"><div onclick="appDeleteUser(\''+Object.keys(users)[i]+'\')" class="actionbar_item ac_red"><i class="material-icons">close</i>Delete</div><div class="actionbar_item ac_green" onclick="appApproveUser(\''+Object.keys(users)[i]+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
 	
 }
 	
@@ -1623,6 +1662,7 @@ if (groups != null) {
 for (var i = 0; i < Object.keys(groups).length; i++) {
 	
 var cgroup = groups[Object.keys(groups)[i]];
+var cgroupid = Object.keys(groups)[i];
 
 if (cgroup.tasks != null) {
 for (var e = 0; e < Object.keys(cgroup.tasks).length; e++) {
@@ -1632,8 +1672,40 @@ var ctaskid = Object.keys(cgroup.tasks)[e];
 var faketaskid = ctaskid.split("_").join("$");
 
 if (ctask.status == "pending") {
+	
+	
+var itemhtml = '<div style="overflow: hidden;padding-bottom: 1px;">';
+var taskitem_sort = [];
 
-pendhtml += '<div class="approval_card" id="taskapp_'+faketaskid+'" onclick="approveCard(\'taskapp\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">list_alt</i></div><div class="app_right"><div class="app_title truncate">Task needs approval</div><div class="app_desc truncate">'+htmlescape(cgroup.name)+": "+htmlescape(ctask.name)+'</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2px;">&quot;'+ctask.name+'&quot; by '+cgroup.name+'</center><div class="actionbar"><div class="actionbar_item ac_red"><i class="material-icons">close</i>Reject</div><div class="actionbar_item ac_green"><i class="material-icons">check</i>Approve</div></div></div></div>'
+if (ctask.items != null) {
+for (var r = 0; r < Object.keys(ctask.items).length; r++) {
+var citeml = ctask.items[Object.keys(ctask.items)[r]];
+taskitem_sort[r] = [citeml.pos,'<div style="height: 26px;padding-top: 6px;"><div style="float: left;"><i class="material-icons" style="font-size: 26px;">check_box_outline_blank</i></div><div style="float: left;width: calc(100% - 31px);padding-left: 5px;font-size: 20px;">'+citeml.text+'</div></div>'];
+}
+
+function taskSort(a,b) {
+	return a[0] - b[0];
+}
+taskitem_sort = taskitem_sort.sort(taskSort);
+for (var r = 0; r < taskitem_sort.length; r++) {
+	
+	itemhtml += taskitem_sort[r][1];
+	
+}
+}
+
+itemhtml += '</div>';
+
+var itemam = "no items";
+if (ctask.items && Object.keys(ctask.items)) {
+if (Object.keys(ctask.items).length > 1) {
+	itemam = Object.keys(ctask.items).length+" items"
+} else {
+	itemam = "1 item"
+}
+}
+
+pendhtml += '<div class="approval_card" id="taskapp_'+faketaskid+'" onclick="approveCard(\'taskapp\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">list_alt</i></div><div class="app_right"><div class="app_title truncate">Task needs approval</div><div class="app_desc truncate">'+htmlescape(cgroup.name)+": "+htmlescape(ctask.name)+'</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">&quot;'+ctask.name+'&quot; by '+cgroup.name+'</center><center style="font-size: 18px;padding-top: 3px;">Task has '+itemam+'</center>'+itemhtml+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appRejectTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">close</i>Reject</div><div class="actionbar_item ac_green" onclick="appApproveTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
 	
 }
 
@@ -1664,6 +1736,7 @@ approveCard(gid('queue_content').children[0].id.split("_")[0],gid('queue_content
 	
 }
 	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
@@ -1768,6 +1841,13 @@ function disableCard(type,id) {
 
 suspended_cards = true;
 gid(type+"_"+id).querySelector(".actionbar").classList.add("actionbar_disabled");
+	
+}
+
+function enableCard(type,id) {
+
+suspended_cards = false;
+gid(type+"_"+id).querySelector(".actionbar").classList.remove("actionbar_disabled");
 	
 }
 
@@ -1903,6 +1983,65 @@ firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/status").set
 hideAlert();
 loadHome();
 	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function appApproveTask(groupid,taskid) {
+	
+var fake_task_id = taskid.split("_").join("$");
+disableCard("taskapp",fake_task_id);
+
+setTimeout(function() {
+	enableCard("taskapp",fake_task_id);
+},0)
+	
+showAlert("Approve task",'<div style="padding-bottom: 12px;">How many points is this task worth?</div><input onkeypress="if(event.keyCode==13) {valApproveTask(\''+groupid+'\',\''+taskid+'\',\''+fake_task_id+'\')}" class="c_text" id="taskpoints" placeholder="Points"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="group_error_text"></div>',"submit",function() {valApproveTask(groupid,taskid,fake_task_id)})
+	
+taskpoints.focus();
+	
+}
+
+function valApproveTask(groupid,taskid,fake_task_id) {
+	
+var pnts = taskpoints.value;
+
+if (pnts.length > 0 && String(pnts) == String(Number(pnts)) && String(pnts) != "NaN") {
+	
+hideAlert();
+	
+disableCard("taskapp",fake_task_id);
+
+firebase.database().ref('groups/'+groupid+"/tasks/"+taskid+"/orig_points").set(Number(pnts)).then(function () {
+
+firebase.database().ref('groups/'+groupid+"/tasks/"+taskid+"/points").set(Number(pnts)).then(function () {
+
+firebase.database().ref('groups/'+groupid+"/tasks/"+taskid+"/status").set("approved").then(function () {
+
+dismissCard("taskapp",fake_task_id);
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+} else {
+	group_error_text.innerHTML = "Please enter a valid point value";
+}
+	
+}
+
+function appRejectTask(groupid,taskid) {
+	
+var fake_task_id = taskid.split("_").join("$");
+	
+disableCard("taskapp",fake_task_id);
+
+firebase.database().ref('groups/'+groupid+"/tasks/"+taskid+"/status").set("rejected").then(function () {
+
+dismissCard("taskapp",fake_task_id);
+
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
