@@ -1999,6 +1999,10 @@ taskname.value = tasks[taskid].name;
 
 function valNewTaskName(taskid,penalty) {
 	
+if (tasks[taskid].name == taskname.value) {
+	return hideAlert();
+}
+	
 var gn = taskname.value;
 
 if (gn.length > 0) {
