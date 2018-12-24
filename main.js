@@ -558,6 +558,7 @@ var tasks;
 function loadHome() {
 	
 gid('tasks_list').innerHTML = real_spinner;
+edittask = false;
 	
 firebase.database().ref("groups/"+userjson.group+"/tasks").once('value').then(function(snapshot) {
 	
@@ -593,7 +594,7 @@ if (tasks[taskid].status != null && tasks[taskid].status != "rejected") {
 	text_disabled = 'readonly="readonly"'	
 }
 
-var c_task_item = '<div class="task_item" id="item_'+itemid+'"><i class="material-icons" id="drag_'+citem.pos+'">'+m_icon+'</i><textarea '+text_disabled+' type="text" placeholder="List item">'+citem.text+'</textarea><i onclick="removeItem(\''+itemid+'\',\''+taskid+'\')" class="material-icons">close</i></div>'
+var c_task_item = '<div class="task_item" id="item_'+itemid+'"><i class="material-icons" id="drag_'+citem.pos+'">'+m_icon+'</i><textarea '+text_disabled+' type="text" placeholder="List item">'+citem.text+'</textarea><i onclick="removeItem(\''+itemid+'\',\''+taskid+'\','+(tasks[taskid].status == "approved")+')" class="material-icons">close</i></div>'
 task_sort[e] = [citem.pos,c_task_item];
 
 }
@@ -617,7 +618,7 @@ if (tasks[taskid].status == "rejected") {
 	banner = '<div class="task_edit"><div>Draft was rejected</div><div onclick="submitTask(\''+taskid+'\')">Submit</div></div>'
 }
 if (tasks[taskid].status == "approved") {
-	banner = '<div class="task_status"><div>Progress: 0%</div><div>0/'+ctask.points+' <i class="material-icons">stars</i></div><div></div></div>'
+	banner = '<div class="task_status"><div>Progress: 0%</div><div>0/'+ctask.points+' <i class="material-icons">stars</i></div><div></div></div><div style="display: none" class="task_edit"><div>You have unsaved changes</div><div onclick="submitChanges(\''+taskid+'\')">Submit</div></div>'
 }
 if (tasks[taskid].status == "delete") {
 	banner = '<div class="task_edit"><div>Pending deletion...</div><div onclick="cancelTaskDelete(\''+taskid+'\')">Cancel</div></div>';
@@ -626,7 +627,7 @@ if (tasks[taskid].status == "delete") {
 var task_add = '<div class="task_item add_item" onclick="addItem(\''+taskid+'\')"><i class="material-icons">add</i><div>Add item</div></div>';
 
 if (tasks[taskid].status != null && tasks[taskid].status != "rejected") {
-	task_add = "";
+	task_add = '<div style="display: none" class="task_item add_item" onclick="addItem(\''+taskid+'\',undefined,true)"><i class="material-icons">add</i><div>Add item</div></div>';
 	task_class = "";
 }
 	
@@ -657,7 +658,7 @@ if (!ccitem.classList.contains("add_item") && ccitem.querySelector("textarea")) 
 	
 var textarea = tasks_list.children[i].querySelector(".task_items").children[e].querySelector("textarea");
 	
-initTextarea(textarea,cctask.id.split("task_")[1],textarea.readOnly);
+initTextarea(textarea,cctask.id.split("task_")[1],tasks[cctask.id.split("task_")[1]].status == "pending",tasks[cctask.id.split("task_")[1]].status == "approved");
 	
 }	
 }	
@@ -678,7 +679,7 @@ taskRefListenerActive = true;
 
 var taskRefListenerActive = false;
 
-function initTextarea(textarea,cctaskid,skipall) {
+function initTextarea(textarea,cctaskid,skipall,nonetwork) {
   textarea.style.height = ""; /* Reset the height*/
   textarea.style.height = textarea.scrollHeight + "px";
   
@@ -687,7 +688,9 @@ if (skipall !== true) {
 textarea.oninput = function() {
   textarea.style.height = ""; /* Reset the height*/
   textarea.style.height = textarea.scrollHeight + "px";
+  if (nonetwork !== true) {
   firebase.database().ref("groups/"+userjson.group+"/tasks/"+cctaskid+"/items/"+textarea.parentElement.id.split("item_")[1]+"/text").set(textarea.value).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+  }
   tasks[cctaskid].items[textarea.parentElement.id.split("item_")[1]].text = textarea.value;
 };
 
@@ -705,7 +708,7 @@ if (event.keyCode==13) {
 	
 	var next = textarea.parentElement.nextSibling;
 if (next.classList.contains("add_item")) {
-	var additem = addItem(cctaskid);
+	var additem = addItem(cctaskid,undefined,nonetwork);
 	if (additem != false) {
 	var newbox = additem.querySelector("textarea");
 	newbox.value = newval;
@@ -715,7 +718,7 @@ if (next.classList.contains("add_item")) {
 	newbox.oninput();
 	}
 } else {
-	var additem = addItem(cctaskid,Number(textarea.previousElementSibling.id.split("drag_")[1])+1);
+	var additem = addItem(cctaskid,Number(textarea.previousElementSibling.id.split("drag_")[1])+1,nonetwork);
 	if (additem != false) {
 	var newbox = additem.querySelector("textarea");
 	newbox.value = newval;
@@ -740,7 +743,7 @@ if (event.keyCode==8) {
 		newbox = textarea.parentElement.nextSibling.querySelector("textarea");
 		}
 		}
-		removeItem(textarea.parentElement.id.split("item_")[1],cctaskid);
+		removeItem(textarea.parentElement.id.split("item_")[1],cctaskid,nonetwork);
 		if (newbox) {
 		newbox.selectionStart = newbox.value.length;
 		newbox.selectionEnd = newbox.value.length;
@@ -755,7 +758,7 @@ if (event.keyCode==8) {
 		newbox.selectionStart = orig_length;
 		newbox.selectionEnd = orig_length;
 		newbox.oninput();
-		removeItem(textarea.parentElement.id.split("item_")[1],cctaskid);
+		removeItem(textarea.parentElement.id.split("item_")[1],cctaskid,nonetwork);
 		newbox.focus();
 	}
 	}
@@ -763,7 +766,7 @@ if (event.keyCode==8) {
 	
 }
 
-textarea.previousElementSibling.addEventListener("touchstart", function(e) {itemDragStart(e)}, false);
+textarea.previousElementSibling.addEventListener("touchstart", function(e) {itemDragStart(e,nonetwork)}, false);
 
 }
 }
@@ -775,8 +778,19 @@ var item_startPixelOffset = false;
 var initemdrag = false;
 var itemCurrentWho = false;
 var inDragTask = "";
+var nonetwork_drag = false;
 
-function itemDragStart(event) {
+function itemDragStart(event,nonetwork) {
+	
+inDragTask = event.target.parentElement.parentElement.parentElement.id.split("task_")[1];
+if (nonetwork) {
+if (inDragTask !== edittask){
+	return true;
+}
+}
+
+nonetwork_drag = nonetwork;
+	
 event.preventDefault();
 event.stopPropagation();
 
@@ -785,8 +799,6 @@ if (initemdrag !== false) {
 }
 
 event.target.nextSibling.blur();
-
-inDragTask = event.target.parentElement.parentElement.parentElement.id.split("task_")[1];
 
 who = Number(event.target.id.split("drag_")[1]);
 
@@ -903,7 +915,7 @@ if (!childs[i].classList.contains("add_item")) {
 	newposarray[childs[i].id.split("item_")[1]].pos = i;
 }
 }
-if (dontsave != true) {
+if (dontsave != true && nonetwork_drag !== true) {
 firebase.database().ref("groups/"+userjson.group+"/tasks/"+inDragTask+"/items").update(tasks[inDragTask].items).then(function(snapshot) {
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
@@ -912,7 +924,7 @@ firebase.database().ref("groups/"+userjson.group+"/tasks/"+inDragTask+"/items").
 }
 
 
-function addItem(taskid,index) {
+function addItem(taskid,index,nonetwork) {
 	
 if (tasks[taskid].items && Object.keys(tasks[taskid].items).length > 9) {
 	return false;
@@ -941,7 +953,7 @@ gid("task_"+taskid).querySelector(".task_items").insertBefore(new_item,gid("task
 
 var textarea = new_item.querySelector("textarea");
 
-initTextarea(textarea,taskid)
+initTextarea(textarea,taskid,undefined,nonetwork)
 
 textarea.previousElementSibling.id = "drag_"+(index || Object.keys(tasks[taskid].items || {}).length);
 
@@ -960,14 +972,16 @@ if (index != null) {
 	gid("item_"+new_item_id).querySelector("textarea").focus();
 }
 
+if (nonetwork !== true) {
 firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items/").set(tasks[taskid].items).then(function(snapshot) {
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}
 
 return new_item;
 }
 
-function removeItem(itemid, taskid) {
+function removeItem(itemid, taskid, nonetwork) {
 	
 if (gid("item_"+itemid).nextElementSibling && gid("item_"+itemid).nextElementSibling.querySelector("textarea")) {
 	gid("item_"+itemid).nextElementSibling.querySelector("textarea").focus();
@@ -995,9 +1009,11 @@ delete tasks[taskid].items[itemid];
 
 redrawJustOrder(taskid);
 
+if (nonetwork !== true) {
 firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid+"/items").set(tasks[taskid].items).then(function(snapshot) {
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}
 	
 }
 
@@ -1940,7 +1956,15 @@ pendhtml = '<div style="overflow: hidden; margin-bottom: -10px;"><div class="pos
 
 if (tasks[taskid].status == "approved") {
 	
+if (edittask == taskid) {
+	
+pendhtml = '<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" onclick="submitChanges(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">send</i></div><div class="pa_right">Submit changes</div></div><div class="post_attach" onclick="cancelChanges(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">close</i></div><div class="pa_right">Discard changes</div></div></div>'
+	
+} else {
+	
 pendhtml = '<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" onclick="renameTask(\''+taskid+'\',true)"><div class="pa_left"><i class="material-icons">edit</i></div><div class="pa_right">Rename</div></div><div class="post_attach" onclick="editTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">edit</i></div><div class="pa_right">Edit items</div></div><div class="post_attach" onclick="requestDeleteTask(\''+taskid+'\')"><div class="pa_left"><i class="material-icons">delete</i></div><div class="pa_right">Delete task</div></div></div>'
+
+}
 	
 }
 
@@ -2016,8 +2040,11 @@ if (penalty) {
 	
 var newval = tasks[taskid].points-1;
 if (newval < 0) {newval = 0};
+
+var s = "s";
+if (newval == 1) {s = ""};
 	
-showAlert("Rename task","This action result in the loss of 1 point value for this task<div style='padding-top: 10px'></div>New value: "+newval+" points","confirm",function() {
+showAlert("Rename task","This action result in the loss of 1 point value for this task<div style='padding-top: 10px'></div>New value: "+newval+" point"+s,"confirm",function() {
 	
 createPostProgress("Renaming task")
 	
@@ -2197,4 +2224,135 @@ dismissCard("deleteapp",fake_task_id);
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
+}
+
+var edittask = false;
+var orig_task = false;
+
+function editTask(taskid) {
+
+edittask = taskid;
+orig_task = JSON.parse(JSON.stringify(tasks[taskid]));
+hideAlert();
+
+gid("task_"+taskid).querySelector(".task_status").style.display = "none";
+gid("task_"+taskid).querySelector(".task_edit").style.display = "block";
+gid("task_"+taskid).querySelector(".task_items").classList.add("edit_list");
+gid("task_"+taskid).querySelector(".add_item").style.display = "block";
+
+var childs = gid("task_"+taskid).querySelector(".task_items").children;
+
+for (var i = 0; i < childs.length-1; i++) {
+	childs[i].querySelector("i").innerHTML = "drag_indicator";
+	childs[i].querySelector("textarea").readOnly = false;
+}
+	
+}
+
+function cancelChanges(taskid) {
+	
+edittask = false;
+hideAlert();
+
+gid("task_"+taskid).querySelector(".task_status").style.display = "block";
+gid("task_"+taskid).querySelector(".task_edit").style.display = "none";
+gid("task_"+taskid).querySelector(".task_items").classList.remove("edit_list");
+gid("task_"+taskid).querySelector(".add_item").style.display = "none";
+
+var childs = gid("task_"+taskid).querySelector(".task_items").children;
+
+for (var i = 0; i < childs.length-1; i++) {
+	childs[i].querySelector("i").innerHTML = "check_box_outline_blank";
+	childs[i].querySelector("textarea").readOnly = true;
+}
+
+loadHome();
+	
+}
+
+function submitChanges(taskid) {
+	
+var adds = 0;
+var deletes = 0;
+var edits = 0;
+var reorder = false;
+	
+for (var i = 0; i < Object.keys(orig_task.items).length; i++) {
+	
+var citem = orig_task.items[Object.keys(orig_task.items)[i]];
+var citemid = Object.keys(orig_task.items)[i];
+
+if (tasks[taskid].items != null && tasks[taskid].items[citemid] != null) {
+
+if (tasks[taskid].items[citemid].pos != citem.pos) {
+	reorder = true;
+}
+
+if (tasks[taskid].items[citemid].text != citem.text) {
+	edits += 1;
+}
+
+} else {
+	
+deletes += 1;
+	
+}
+	
+}
+
+for (var i = 0; i < Object.keys(tasks[taskid].items).length; i++) {
+	
+var citem = tasks[taskid].items[Object.keys(tasks[taskid].items)[i]];
+var citemid = Object.keys(tasks[taskid].items)[i];
+
+if (orig_task.items != null && orig_task.items[citemid] != null) {
+
+} else {
+	
+adds += 1;
+	
+}
+	
+}
+
+var summary = "";
+
+if (adds > 0) {
+	var adds_s = "s";
+	if (adds == 1) {adds_s = ""};
+	summary += "Added "+adds+" item"+adds_s+" <span style='color: red'>(-"+adds+" point"+adds_s+")</span><br>";
+}
+
+if (deletes > 0) {
+	var deletes_s = "s";
+	if (deletes == 1) {deletes_s = ""};
+	summary += "Removed "+deletes+" item"+deletes_s+" <span style='color: red'>(-"+deletes+" point"+deletes_s+")</span><br>";
+}
+
+if (edits > 0) {
+	var edits_s = "s";
+	if (edits == 1) {edits_s = ""};
+	summary += "Edited "+edits+" item"+edits_s+" <span style='color: red'>(-"+edits+" point"+edits_s+")</span><br>";
+}
+
+if (reorder) {
+	summary += "Item order changed <span style='color: red'>(-1 point)</span><br>";
+}
+
+var loss = adds+deletes+edits;
+if (reorder) {loss += 1};
+
+var s = "s";
+if (loss == 1) {s = ""};
+
+var newval = tasks[taskid].points-loss;
+if (newval < 0) {newval = 0};
+
+var s2 = "s";
+if (newval == 1) {s2 = ""};
+
+showAlert("Edit items",'This action result in the loss of '+loss+' point value'+s+' for this task<div style="padding-top: 10px"></div>'+summary+'<div style="padding-top: 10px"></div>New value: '+newval+' point'+s2,"confirm",function() {
+
+})
+
 }
