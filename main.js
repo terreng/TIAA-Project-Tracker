@@ -943,7 +943,7 @@ var new_item_id = firebase.database().ref().child("groups/"+userjson.group+"/tas
 var new_item = document.createElement("div");
 new_item.classList.add("task_item");
 new_item.id = "item_"+new_item_id;
-new_item.innerHTML = '<i class="material-icons">drag_indicator</i><textarea type="text" value="" placeholder="List item"></textarea><i onclick="removeItem(\''+new_item_id+'\',\''+taskid+'\')" class="material-icons">close</i>';
+new_item.innerHTML = '<i class="material-icons">drag_indicator</i><textarea type="text" value="" placeholder="List item"></textarea><i onclick="removeItem(\''+new_item_id+'\',\''+taskid+'\','+nonetwork+')" class="material-icons">close</i>';
 
 if (index != null) {
 gid("task_"+taskid).querySelector(".task_items").insertBefore(new_item,gid("task_"+taskid).querySelector(".task_items").children[index+1]);
@@ -1740,7 +1740,7 @@ var taskitem_sort = [];
 if (ctask.items != null) {
 for (var r = 0; r < Object.keys(ctask.items).length; r++) {
 var citeml = ctask.items[Object.keys(ctask.items)[r]];
-taskitem_sort[r] = [citeml.pos,'<div style="height: 26px;padding-top: 6px;"><div style="float: left;"><i class="material-icons" style="font-size: 26px;">check_box_outline_blank</i></div><div style="float: left;width: calc(100% - 31px);padding-left: 5px;font-size: 20px;">'+citeml.text+'</div></div>'];
+taskitem_sort[r] = [citeml.pos,'<div style="overflow:hidden;padding-top: 6px;"><div style="float: left;"><i class="material-icons" style="font-size: 26px;">check_box_outline_blank</i></div><div style="float: left;width: calc(100% - 31px);padding-left: 5px;font-size: 20px;">'+citeml.text+'</div></div>'];
 }
 
 function taskSort(a,b) {
@@ -2232,7 +2232,7 @@ var orig_task = false;
 function editTask(taskid) {
 
 edittask = taskid;
-orig_task = JSON.parse(JSON.stringify(tasks[taskid]));
+orig_task = JSON.parse(JSON.stringify(tasks[taskid] || {}));
 hideAlert();
 
 gid("task_"+taskid).querySelector(".task_status").style.display = "none";
@@ -2249,7 +2249,7 @@ for (var i = 0; i < childs.length-1; i++) {
 	
 }
 
-function cancelChanges(taskid) {
+function cancelChanges(taskid,nolh) {
 	
 edittask = false;
 hideAlert();
@@ -2266,7 +2266,9 @@ for (var i = 0; i < childs.length-1; i++) {
 	childs[i].querySelector("textarea").readOnly = true;
 }
 
+if (nolh !== true) {
 loadHome();
+}
 	
 }
 
@@ -2277,6 +2279,7 @@ var deletes = 0;
 var edits = 0;
 var reorder = false;
 	
+if (orig_task != null && orig_task.items != null) {
 for (var i = 0; i < Object.keys(orig_task.items).length; i++) {
 	
 var citem = orig_task.items[Object.keys(orig_task.items)[i]];
@@ -2299,7 +2302,9 @@ deletes += 1;
 }
 	
 }
+}
 
+if (tasks[taskid] != null && tasks[taskid].items != null) {
 for (var i = 0; i < Object.keys(tasks[taskid].items).length; i++) {
 	
 var citem = tasks[taskid].items[Object.keys(tasks[taskid].items)[i]];
@@ -2313,6 +2318,11 @@ adds += 1;
 	
 }
 	
+}
+}
+
+if (adds == 0 && deletes == 0 && edits == 0 && reorder == false) {
+	return cancelChanges(taskid,true);
 }
 
 var summary = "";
@@ -2352,6 +2362,23 @@ var s2 = "s";
 if (newval == 1) {s2 = ""};
 
 showAlert("Edit items",'This action result in the loss of '+loss+' point value'+s+' for this task<div style="padding-top: 10px"></div>'+summary+'<div style="padding-top: 10px"></div>New value: '+newval+' point'+s2,"confirm",function() {
+	
+createPostProgress("Updating items")
+	
+tasks[taskid].points -= loss;
+if (tasks[taskid].points < 0) {tasks[taskid].points = 0};
+
+var updarr = {
+	"points": newval,
+	"items": tasks[taskid].items
+}
+	
+firebase.database().ref("groups/"+userjson.group+"/tasks/"+taskid).update(updarr).then(function(snap) {
+
+hideAlert();
+loadHome();
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 
 })
 
