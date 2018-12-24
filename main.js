@@ -664,14 +664,19 @@ initTextarea(textarea,cctask.id.split("task_")[1],textarea.readOnly);
 }
 }
 
+if (taskRefListenerActive == false) {
 var taskRef = firebase.database().ref("groups/"+userjson.group+"/tasks");
 taskRef.on('value', function(snapshot) {
   updateTasksAndLists(snapshot.val());
 });
+taskRefListenerActive = true;
+}
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
+
+var taskRefListenerActive = false;
 
 function initTextarea(textarea,cctaskid,skipall) {
   textarea.style.height = ""; /* Reset the height*/
