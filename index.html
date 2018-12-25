@@ -119,11 +119,12 @@ CANCEL
 </div>
 
 <div class="top_title float_top" id="toptitle" style="display: none;">
-<a onclick="toggleSidebar()">
-<div class="page_left_icon">
-<i class="material-icons" style="font-size: 43px; padding-right: 8px;">menu</i>
+<div onclick="toggleSidebar()" class="page_left_icon" id="menu_icon">
+<i class="material-icons" style="font-size: 35px;padding-right: 15px !important;padding: 5px;">menu</i>
 </div>
-</a>
+<div onclick="closeCheckItemScreen()" class="page_left_icon" id="close_icon">
+<i class="material-icons" style="font-size: 35px;padding-right: 15px !important;padding: 5px;">close</i>
+</div>
 <div class="page_title" id="navtitle">
 
 </div>
@@ -278,6 +279,60 @@ Your account must be approved and assigned to a group before you have access the
 <div id="tasks_list">
 
 <div class="task"><div class="task_top"><div>Task name</div><div><i class="material-icons">more_vert</i></div></div><div class="task_status"><div>Progress: 45%</div><div>9/20 <i class="material-icons">stars</i></div><div></div></div><div class="task_edit"><div>This is a draft</div><div>Submit</div></div><div class="task_items"><div class="task_item"><i class="material-icons">check_box_outline_blank</i><div>Description of task item</div><i class="material-icons">close</i></div><div class="task_item"><i class="material-icons">check_box_outline_blank</i><div>Description of task item</div></div><div class="task_item add_item"><i class="material-icons">add</i><div>Add item</div></div></div></div>
+
+</div>
+
+</div>
+
+<div class="tabcontent" id="check_content">
+
+<div class="container" id="check_info">
+
+<div style="
+    font-size: 20px;
+" id="check_text">"Get lemonade stand assembled/setup &amp; ready"</div>
+<div class="padding"></div>
+
+<label id="desc_img" for="file_input" style="
+    height: 100px;
+    width: 150px;
+    background: #d6d6d6;
+    border-radius: 7px;
+    margin-top: 2px;
+	margin-bottom: 5px;
+	display: block;
+"><i class="material-icons" style="
+    font-size: 50px;
+    color: #616161;
+    text-align: center;
+    width: 150px;
+    padding-top: 12px;
+">
+photo_camera
+</i>
+<div style="
+    color: #616161;
+    font-size: 20px;
+    text-align: center;
+    padding-top: 4px;
+">Upload picture</div><input type="file" accept="image/*" id="file_input" style="height: 0px;width: 0px;overflow: hidden;/* display: none; */border: 0;padding: 0;font-size: 1px;" onchange="updateDescImages()"></label>
+
+<div id="desc_imgrender"></div>
+
+<textarea class="c_textarea" placeholder="Short description" id="desctext" onchange="descChange();" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"></textarea>
+<div style="font-size: 20px; padding-top: 2px; text-align: right; color: black;" id="desc_char">0/120</div>
+
+<div class="padding"></div>
+<div class="buttons">
+<a onclick="closeCheckItemScreen()">
+<div class="button gray">
+Cancel
+</div>
+</a>
+<a onclick="submitCheck()">
+<div class="button" id="check_button" style="float: right; margin-right: 0">Submit</div>
+</a>
+</div>
 
 </div>
 

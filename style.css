@@ -188,17 +188,17 @@ padding-top: 1px;
 }
 
 .page_title {
-	float: left;
+    float: left;
     text-align: left;
     padding-top: 1px;
-	color: white;
-    font-size: 27px;
-	text-decoration: none;
-	line-height: 54px;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	width: calc(100% - 80px);
+    color: white;
+    font-size: 24px;
+    text-decoration: none;
+    line-height: 56px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: calc(100% - 80px);
 }
 
 .so {
@@ -449,17 +449,18 @@ border-radius: 0;
 }
 
 .c_textarea {
-width: calc(100% - 8px);
-height: 200px;
-resize: none;
-padding: 1px 3px;
-font-size: 20px;
-font-family: 'roboto', sans-serif;
-border-color: black;
-border-style: solid;
-border-width: 1px;
-display: block;
-border-radius: 0;
+    width: calc(100% - 8px);
+    height: 70px;
+    resize: none;
+    padding: 1px 3px;
+    font-size: 20px;
+    font-family: 'roboto', sans-serif;
+    border-color: black;
+    border-style: solid;
+    border-width: 1px;
+    display: block;
+    border-radius: 0;
+    margin-top: 18px;
 }
 
 .new_account_button {
@@ -1188,20 +1189,18 @@ font-size: 30px;
 }
 
 .task_items {
-    padding-bottom: 4px;
+    padding-bottom: 4.5px;
     padding-top: 7px;
 }
 
 .task_item {
 	overflow: hidden;
-    padding-top: 5px;
-    padding-bottom: 5px;
 }
 
 .task_item i:nth-child(1) {
     float: left;
     font-size: 27px;
-    padding: 1px 6px;
+    padding: 7px 6px;
     padding-left: 7px;
 }
 
@@ -1225,8 +1224,9 @@ font-size: 30px;
 
 .edit_list .task_item i:nth-child(1) {
     font-size: 30px;
-    padding: 0px 5px;
     margin-bottom: -1px;
+    padding: 5px 4px;
+    padding-left: 6px;
 }
 
 .task_item div {
@@ -1239,6 +1239,7 @@ font-size: 30px;
 
 .edit_list .task_item div {
     width: calc(100% - 87px);
+    padding: 9px 0px;
 }
 
 .task_item textarea {
@@ -1254,15 +1255,15 @@ font-size: 30px;
     height: 0px;
 	resize: none;
 	padding-bottom: 1px;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .edit_list .task_item textarea {
     width: calc(100% - 87px);
 }
 
-
 .add_item {
-    padding-top: 5px;
     color: black;
 }
 

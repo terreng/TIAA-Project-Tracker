@@ -266,6 +266,8 @@ toggleSidebar();
     }
     gid(tab+"_content").style.display = "block";
 	gid(tab+"_button").className += " active";
+gid("menu_icon").style.display = "block";
+gid("close_icon").style.display = "none";
 history.replaceState(undefined, undefined, "#"+tab);
 if (tab == "home") {
 gid("navtitle").innerHTML = "Projects"
@@ -594,7 +596,7 @@ if (tasks[taskid].status != null && tasks[taskid].status != "rejected") {
 	text_disabled = 'readonly="readonly"'	
 }
 
-var c_task_item = '<div class="task_item" id="item_'+itemid+'"><i class="material-icons" id="drag_'+citem.pos+'">'+m_icon+'</i><textarea '+text_disabled+' type="text" placeholder="List item">'+citem.text+'</textarea><i onclick="removeItem(\''+itemid+'\',\''+taskid+'\','+(tasks[taskid].status == "approved")+')" class="material-icons">close</i></div>'
+var c_task_item = '<div class="task_item" onclick="checkItem(\''+taskid+'\',\''+itemid+'\')" id="item_'+itemid+'"><i class="material-icons" id="drag_'+citem.pos+'">'+m_icon+'</i><textarea '+text_disabled+' type="text" placeholder="List item">'+citem.text+'</textarea><i onclick="removeItem(\''+itemid+'\',\''+taskid+'\','+(tasks[taskid].status == "approved")+')" class="material-icons">close</i></div>'
 task_sort[e] = [citem.pos,c_task_item];
 
 }
@@ -943,6 +945,7 @@ var new_item_id = firebase.database().ref().child("groups/"+userjson.group+"/tas
 var new_item = document.createElement("div");
 new_item.classList.add("task_item");
 new_item.id = "item_"+new_item_id;
+new_item.onclick = function() {checkItem(taskid,new_item_id)};
 new_item.innerHTML = '<i class="material-icons">drag_indicator</i><textarea type="text" value="" placeholder="List item"></textarea><i onclick="removeItem(\''+new_item_id+'\',\''+taskid+'\','+nonetwork+')" class="material-icons">close</i>';
 
 if (index != null) {
@@ -1057,6 +1060,7 @@ itemDragEnd(true)
 var new_item = document.createElement("div");
 new_item.classList.add("task_item");
 new_item.id = "item_"+citemid;
+new_item.onclick = function() {checkItem(ctaskid,citemid)};
 new_item.innerHTML = '<i class="material-icons">drag_indicator</i><textarea type="text" value="" placeholder="List item"></textarea><i onclick="removeItem(\''+citemid+'\',\''+ctaskid+'\')" class="material-icons">close</i>';
 
 gid("task_"+ctaskid).querySelector(".task_items").insertBefore(new_item,gid("task_"+ctaskid).querySelector(".add_item"));
@@ -2230,6 +2234,10 @@ var edittask = false;
 var orig_task = false;
 
 function editTask(taskid) {
+	
+if (edittask !== false) {
+	return showAlert("Already editing task","You have another task with unsaved changes. These changes must be saved or discarded before you can edit this task.")
+}
 
 edittask = taskid;
 orig_task = JSON.parse(JSON.stringify(tasks[taskid] || {}));
@@ -2382,4 +2390,194 @@ loadHome();
 
 })
 
+}
+
+var checkitemcurrent = false;
+
+function checkItem(taskid,itemid) {
+if (taskid !== edittask && tasks[taskid].status == "approved") {
+
+	checkitemcurrent = [taskid,itemid];
+	openCheckItemScreen();
+	gid("check_text").innerHTML = '"'+htmlescape(tasks[taskid].items[itemid].text)+'"';
+
+}
+}
+
+function openCheckItemScreen() {
+	
+gid("close_icon").style.display = "block";
+gid("menu_icon").style.display = "none";
+gid("check_content").style.display = "block";
+gid("home_content").style.display = "none";
+gid("desc_img").style.display = "block";
+gid("file_input").value = null;
+gid("desc_imgrender").style.display = "none";
+gid("navtitle").innerHTML = "Complete task item";
+gid("desctext").value = "";
+selected_image = false;
+descChange();
+	
+}
+
+function closeCheckItemScreen() {
+	
+gid("close_icon").style.display = "none";
+gid("menu_icon").style.display = "block";
+gid("check_content").style.display = "none";
+gid("home_content").style.display = "block";
+gid("navtitle").innerHTML = "Projects";
+	
+}
+
+function descChange() {
+	
+var len = gid("desctext").value.length;
+
+if (len > 120) {
+	gid("desc_char").style.color = "red";
+} else {
+	gid("desc_char").style.color = "black";
+}
+
+gid("desc_char").innerHTML = len+"/120";
+	
+}
+
+var selected_image = false;
+var img_size = false;
+
+function updateDescImages() {
+
+img_size = false;
+	
+if (document.getElementById('file_input').files.length == 1) {
+var thistype = document.getElementById('file_input').files[0].type;
+if (thistype == "image/png" || thistype == "image/jpeg" || thistype == "image/gif" || thistype == "image/webp") {
+selected_image = document.getElementById('file_input').files[0];
+} else {
+return showAlert("Error","The following images could not be uploaded because they are not of a supported file format:<div style='padding-top: 10px'></div>"+document.getElementById('file_input').files[0].name.toString().split(",").join("</br>")+"<div style='padding-top: 10px'></div>Supported formats are: png, jpeg, gif, webp.");
+}
+
+gid('file_input').value = null;
+	
+var pendhtml = "<img onclick='discardImage()' id='img_select' style='max-height: 180px; max-width: 100%;' onload='img_size = [gid(\"img_select\").naturalWidth,gid(\"img_select\").naturalHeight]'></img><style scoped='scoped' onload='showImg()'></style>";
+
+gid("desc_imgrender").innerHTML = pendhtml;
+gid("desc_imgrender").style.display = "block";
+gid("desc_img").style.display = "none";
+}
+	
+}
+
+function showImg() {
+	
+var reader = new FileReader();
+reader.onloadend = function() {
+gid("img_select").src = reader.result;
+}
+reader.readAsDataURL(selected_image);
+	
+}
+
+function discardImage() {
+	
+selected_image = false;
+img_size = false;
+gid("desc_imgrender").style.display = "none";
+gid("desc_img").style.display = "block";
+	
+}
+
+function submitCheck() {
+	
+if (selected_image && img_size && gid("desctext").value.length > 0) {
+	
+actualSubmitCheck();
+	
+} else {
+	
+var without = "";
+if (selected_image == false || img_size == false) {
+	without = "image";
+}
+if (gid("desctext").value.length == 0) {
+if (without == "image") {
+	without += " or description"
+} else {
+	without = "description"
+}
+}
+	
+showAlert("Submit without "+without+"?",'<textarea style="margin-top:0px" class="c_textarea" placeholder="Why aren\'t you able to provide this evidence?" id="evidencetext" onchange="evidenceChange();" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"></textarea><div style="font-size: 20px; padding-top: 2px; text-align: right; color: black;" id="evidence_char">0/120</div>',"submit",function() {
+	
+if (gid("evidencetext").value.length > 0) {
+	
+actualSubmitCheck(gid("evidencetext").value);
+
+} else {
+
+gid("evidence_char").style.color = "red";
+gid("evidence_char").innerHTML = "This is required";
+gid("evidencetext").focus();
+	
+}
+	
+});
+
+gid("evidencetext").focus();
+	
+}
+	
+}
+
+function evidenceChange() {
+	
+var len = gid("evidencetext").value.length;
+
+if (len > 120) {
+	gid("evidence_char").style.color = "red";
+} else {
+	gid("evidence_char").style.color = "black";
+}
+
+gid("evidence_char").innerHTML = len+"/120";
+	
+}
+
+function actualSubmitCheck(excuse) {
+	
+var taskid = checkitemcurrent[0];
+var itemid = checkitemcurrent[1];
+	
+if (selected_image) {
+	
+createPostProgress("Uploading image");
+var file = selected_image;
+var ext = selected_image.type.replace("image/","");
+var uploadTask = firebase.storage().ref().child('users/'+firebase.auth().currentUser.uid+'/'+taskid+'/'+itemid+'.'+ext).put(file).then(function(snapshot) {
+databaseWrite('https://firebasestorage.googleapis.com/v0/b/tiaaprojecttracker.appspot.com/o/users%2F'+firebase.auth().currentUser.uid+'%2F'+taskid+'%2F'+itemid+'.'+ext+'?alt=media');
+}).catch(function(error) {showAlert("Error","Error code: "+error.code+"<div style='padding-top: 10px'></div>"+"Server response:</br>"+error.serverResponse)});
+	
+} else {
+	databaseWrite();
+}
+	
+function databaseWrite(imgurl) {
+createPostProgress("Submitting");
+
+firebase.database().ref("checks/"+firebase.auth().currentUser.uid+"/items/"+taskid+"/"+itemid).set({
+    excuse: excuse || null,
+	description: gid("desctext").value || null,
+	image: imgurl || null
+}).then(
+function (snap) {
+
+hideAlert();
+closeCheckItemScreen();
+
+}
+).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}
+	
 }
