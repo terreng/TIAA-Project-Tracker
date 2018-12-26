@@ -622,7 +622,8 @@ if (tasks[taskid].status == "rejected") {
 	banner = '<div class="task_edit"><div>Draft was rejected</div><div onclick="submitTask(\''+taskid+'\')">Submit</div></div>'
 }
 if (tasks[taskid].status == "approved") {
-	banner = '<div class="task_status"><div>Progress: 0%</div><div>0/'+ctask.points+' <i class="material-icons">stars</i></div><div></div></div><div style="display: none" class="task_edit"><div>You have unsaved changes</div><div onclick="submitChanges(\''+taskid+'\')">Submit</div></div>'
+	var point_prog = calcPointsAndProgress(taskid);
+	banner = '<div class="task_status"><div>Progress: '+Math.round(point_prog[0]*100)+'%</div><div>'+Math.floor(point_prog[1])+'/'+ctask.points+' <i class="material-icons">stars</i></div><div style="background: linear-gradient(to right, #1088ff, #ad19d2 '+Math.round(point_prog[0]*100)+'%, #d2d2d2 0%);"></div></div><div style="display: none" class="task_edit"><div>You have unsaved changes</div><div onclick="submitChanges(\''+taskid+'\')">Submit</div></div>'
 }
 if (tasks[taskid].status == "delete") {
 	banner = '<div class="task_edit"><div>Pending deletion...</div><div onclick="cancelTaskDelete(\''+taskid+'\')">Cancel</div></div>';
@@ -2655,12 +2656,44 @@ gid("item_"+citemid).querySelector("i").innerHTML = determineIcon(ctaskid,citemi
 }
 
 }
-}
+
+point_prog = calcPointsAndProgress(ctaskid);
+
+gid("task_"+ctaskid).querySelector(".task_status").children[0].innerHTML = "Progress: "+Math.round(point_prog[0]*100)+"%";
+gid("task_"+ctaskid).querySelector(".task_status").children[1].innerHTML = point_prog[1]+"/"+ctask.points+" <i class='material-icons'>stars</i>";
+gid("task_"+ctaskid).querySelector(".task_status").children[2].style = "background: linear-gradient(to right, #1088ff, #ad19d2 "+Math.round(point_prog[0]*100)+"%, #d2d2d2 0%);"
 
 }
 
 }
 
-function calcPointsAndProgress() {
+}
+
+function calcPointsAndProgress(taskid) {
+	
+var ctask = tasks[taskid];
+
+var progress = 0;
+var points = 0;
+	
+for (var e = 0; e < Object.keys(ctask.items).length; e++) {
+
+var citem = ctask.items[Object.keys(ctask.items)[e]];
+var citemid = Object.keys(ctask.items)[e];
+
+if (checks && checks.items && checks.items[taskid] && checks.items[taskid][citemid] && checks.items[taskid][citemid].status) {
+	
+progress += 1;
+points += checks.items[taskid][citemid].points || 0;
+	
+}
+
+}
+
+if (Object.keys(ctask.items).length > 0) {
+return [progress/Object.keys(ctask.items).length,Math.floor((ctask.points/Object.keys(ctask.items).length)*points)]
+} else {
+return [0,0];
+}
 	
 }
