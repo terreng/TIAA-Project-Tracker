@@ -183,6 +183,7 @@ gid("home_button").style.display = "none";
 gid("points_button").style.display = "none";
 gid("groups_button").style.display = "none";
 gid("queue_button").style.display = "none";
+gid("leaderboard_button").style.display = "none";
 
 gid("controlpanel").style.display = "block";
 gid("login").style.display = "none";
@@ -198,6 +199,7 @@ gid("profile_photo_2").src = firebase.auth().currentUser.photoURL;
 gid("profile_photo").style.display = "block";
 gid("home_button").style.display = "block";
 gid("points_button").style.display = "block";
+gid("leaderboard_button").style.display = "block";
 } else {
 gid("groups_button").style.display = "block";
 gid("queue_button").style.display = "block";
@@ -278,6 +280,11 @@ if (tab == "points") {
 gid("navtitle").innerHTML = "Points"
 gid("content_title").innerHTML = "Points"
 loadPoints();
+}
+if (tab == "leaderboard") {
+gid("navtitle").innerHTML = "Leaderboard"
+gid("content_title").innerHTML = "Leaderboard"
+loadLeaderboard();
 }
 if (tab == "groups") {
 gid("navtitle").innerHTML = "Groups & Users"
@@ -1434,14 +1441,18 @@ var pendhtml = "";
 if (groups != null) {
 for (var i = 0; i < Object.keys(groups).length; i++) {
 var cgroup = groups[Object.keys(groups)[i]];
-if (cgroup != null && cgroup.members != null && cgroup.members.length > 0) {
+if (cgroup != null) {
 pendhtml += "<div class='group_title'>"+htmlescape(cgroup.name)+"</div>";
+if (cgroup.members != null && cgroup.members.length > 0) {
 for (var e = 0; e < cgroup.members.length; e++) {
 var cuser = users[cgroup.members[e]];
 if (cuser && cuser.verified == true) {
 pendhtml += "<div class='user'><div><img src='"+cuser.picture.split("/mo/").join("/s84/")+"'></img></div><div>"+htmlescape(cuser.name)+"</div><div>0<i class='material-icons'>stars</i></div></div>";
 users[cgroup.members[e]].ingroup = true;
 }
+}
+} else {
+pendhtml += '<div style="text-align: center;color: gray;font-size: 18px;padding-bottom: 10px;padding-top: 5px;">No group members</div>'
 }
 }
 }
@@ -1683,7 +1694,7 @@ var cprivateuser = privateusers[Object.keys(users)[i]];
 
 if (cprivateuser && cuser.name != null && cuser.school != null && cuser.admin !== "admin" && cuser.verified !== true && cuser['delete'] !== true) {
 	
-pendhtml += '<div class="approval_card" id="user_'+Object.keys(users)[i]+'" onclick="approveCard(\'user\',\''+Object.keys(users)[i]+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">account_circle</i></div><div class="app_right"><div class="app_title truncate">Account needs approval</div><div class="app_desc truncate">'+htmlescape(cuser.name)+'</div></div></div><div class="expand_content"><div class="prof_top"><img src="'+cuser.picture+'"></img><div>'+htmlescape(cuser.name)+'</div></div><center><div class="prof_details"><div class="prof_detail truncate"><i class="material-icons">email</i>'+htmlescape(cprivateuser.email)+'</div><div class="prof_detail truncate"><i class="material-icons">phone</i>'+formatPhone(cprivateuser.phone)+'</div><div class="prof_detail truncate"><i class="material-icons">account_balance</i>'+htmlescape(cuser.school)+'</div></div></center><div class="actionbar"><div onclick="appDeleteUser(\''+Object.keys(users)[i]+'\')" class="actionbar_item ac_red"><i class="material-icons">close</i>Delete</div><div class="actionbar_item ac_green" onclick="appApproveUser(\''+Object.keys(users)[i]+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
+pendhtml += '<div class="approval_card" id="user_'+Object.keys(users)[i]+'" onclick="approveCard(\'user\',\''+Object.keys(users)[i]+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">account_circle</i></div><div class="app_right"><div class="app_title truncate">Account needs approval</div><div class="app_desc truncate">'+htmlescape(cuser.name)+'</div></div></div><div class="expand_content"><div class="prof_top"><img src="'+cuser.picture+'"></img><div>'+htmlescape(cuser.name)+'</div></div><center><div class="prof_details"><div class="prof_detail truncate"><i class="material-icons">email</i>'+htmlescape(cprivateuser.email)+'</div><div class="prof_detail truncate"><i class="material-icons">phone</i>'+formatPhone(cprivateuser.phone)+'</div><div class="prof_detail truncate"><i class="custom-icons">0</i>'+htmlescape(cuser.school)+'</div></div></center><div class="actionbar"><div onclick="appDeleteUser(\''+Object.keys(users)[i]+'\')" class="actionbar_item ac_red"><i class="material-icons">close</i>Delete</div><div class="actionbar_item ac_green" onclick="appApproveUser(\''+Object.keys(users)[i]+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
 	
 }
 	
@@ -1813,22 +1824,22 @@ var citemid = Object.keys(ctask)[r];
 if (citem.status != null) {} else {
 
 if (citem.image) {
-var imgproof = '<img onload="proofImgLoaded(this)" style="max-width: 100%;max-height: 220px;" src="'+citem.image+'"></img>'
+var imgproof = '<img onclick="imageClick(\''+ctaskid+'\',\''+citem.image+'\')" onload="proofImgLoaded(this)" style="max-width: 100%;max-height: 220px;" src="'+citem.image+'"></img>'
 } else {
 var imgproof = '<div style="height: 100px;width: 200px;background: #d6d6d6;border-radius:5px;margin-top: 0px;margin-bottom: 5px;display: block;"><i class="material-icons" style="font-size: 50px;color: #616161;text-align: center;width: 200px;padding-top: 12px;">photo_camera</i><div style="color: #616161;font-size: 20px;text-align: center;padding-top: 4px;">No image uploaded</div></div>'
 }
 
 if (citem.description) {
-var descproof = '<div style="font-size: 20px;padding-top: 2px;padding-bottom: 2px;margin-bottom: 5px;">&quot;'+htmlescape(citem.description)+'&quot;</div>'
+var descproof = '<div style="font-size: 20px;padding-top: 4px;padding-bottom: 2px;margin-bottom: 5px;">&quot;'+htmlescape(citem.description)+'&quot;</div>'
 } else {
-var descproof = '<div style="font-size: 20px;padding-top: 2px;padding-bottom: 2px;margin-bottom: 5px;"><i>No description provided</i></div>'
+var descproof = '<div style="font-size: 20px;padding-top: 4px;padding-bottom: 2px;margin-bottom: 5px;"><i>No description provided</i></div>'
 }
 
 if (!citem.description || !citem.image) {
 descproof += '<div style="font-size: 20px;padding: 4px;margin-top: 4px;background-color: #ffdabf;border-radius: 5px;margin-bottom: 7px;margin-top:0px;">Reason for missing info:<div style="padding-top: 5px;"></div>&quot;'+citem.excuse+'&quot;</div>';
 }
 	
-pendhtml += '<div class="approval_card" id="item_'+faketaskid+'" onclick="approveCard(\'item\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">check_box</i></div><div class="app_right"><div class="app_title truncate">Item awaiting review</div><div class="app_desc truncate">'+htmlescape(users[cuserid].name)+': &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">'+htmlescape(users[cuserid].name)+' has requested review for item &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</center><div class="prof_details prof_item"><div class="prof_detail"><i class="material-icons">group</i>'+htmlescape(groups[users[cuserid].group].name)+'</div><div class="prof_detail"><i class="material-icons">person</i>'+htmlescape(users[cuserid].name)+'</div><div class="prof_detail"><i class="material-icons">list_alt</i>'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].name)+'</div><div class="prof_detail"><i class="material-icons">check_box</i>&quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div>'+imgproof+descproof+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appDeclineItem(\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">close</i>Decline</div><div class="actionbar_item ac_green" onclick="appApproveItem(\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
+pendhtml += '<div class="approval_card" id="item_'+faketaskid+'" onclick="approveCard(\'item\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="custom-icons">3</i></div><div class="app_right"><div class="app_title truncate">Item awaiting review</div><div class="app_desc truncate">'+htmlescape(users[cuserid].name)+': &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">'+htmlescape(users[cuserid].name)+' has requested review for item &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</center><div class="prof_details prof_item"><div class="prof_detail"><i class="material-icons">group</i>'+htmlescape(groups[users[cuserid].group].name)+'</div><div class="prof_detail"><i class="material-icons">person</i>'+htmlescape(users[cuserid].name)+'</div><div class="prof_detail"><i class="material-icons">list_alt</i>'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].name)+'</div><div class="prof_detail"><i class="material-icons">check_box</i>&quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div>'+imgproof+descproof+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appDeclineItem(\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">close</i>Decline</div><div class="actionbar_item ac_green" onclick="appApproveItem(\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
 	
 }
 
@@ -2788,4 +2799,18 @@ if (expanded_cards[0] == img.parentElement.parentElement.id) {
 img.parentElement.parentElement.style.height = (img.parentElement.clientHeight-12)+"px";
 
 }
+}
+
+function imageClick(taskid,imgsrc) {
+	
+var fake_task_id = taskid.split("_").join("$");
+
+disableCard("item",fake_task_id);
+
+setTimeout(function() {
+	enableCard("item",fake_task_id);
+},0);
+
+window.open(imgsrc, '_blank');
+	
 }

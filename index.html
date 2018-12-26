@@ -27,6 +27,13 @@
 }
 
 @font-face {
+  font-family: 'customicons';
+  font-style: normal;
+  font-weight: 400;
+  src: url(fonts/fontello.woff) format('woff');
+}
+
+@font-face {
   font-family: 'roboto';
   font-style: normal;
   font-weight: 400;
@@ -134,7 +141,7 @@ CANCEL
 
 <div class="sidebar" id="sidebar">
 <div class="title">
-TIAA Pro Track
+TIAA Project Tracker
 </div>
 <div class="shr" style="margin-bottom: 6px;">
 </div>
@@ -148,6 +155,11 @@ TIAA Pro Track
 <a >
 <div class="option" id="points_button" onclick="switchSection('points')">
 <i class="material-icons sidebar-icons">stars</i>Points
+</div>
+</a>
+<a >
+<div class="option" id="leaderboard_button" onclick="switchSection('leaderboard')">
+<i class="custom-icons sidebar-icons">1</i>Leaderboard
 </div>
 </a>
 <a >
@@ -339,6 +351,11 @@ Cancel
 </div>
 
 <div class="tabcontent" id="points_content">
+
+
+</div>
+
+<div class="tabcontent" id="leaderboard_content">
 
 
 </div>
