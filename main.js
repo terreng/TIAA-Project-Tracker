@@ -556,6 +556,7 @@ showAlert("Error","The confirmation text you entered was incorrect. Your account
 }
 
 var tasks;
+var checks;
 
 function loadHome() {
 	
@@ -565,6 +566,10 @@ edittask = false;
 firebase.database().ref("groups/"+userjson.group+"/tasks").once('value').then(function(snapshot) {
 	
 tasks = snapshot.val();
+
+firebase.database().ref("checks/"+firebase.auth().currentUser.uid).once('value').then(function(snapshot) {
+
+checks = snapshot.val();
 var pendhtml = "";
 
 if (tasks != null) {
@@ -586,10 +591,7 @@ for (var e = 0; e < Object.keys(ctask.items).length; e++) {
 citem = ctask.items[Object.keys(ctask.items)[e]];
 var itemid = Object.keys(ctask.items)[e];
 
-var m_icon = "drag_indicator"
-if (tasks[taskid].status != null && tasks[taskid].status != "rejected") {
-	m_icon = "check_box_outline_blank"
-}
+var m_icon = determineIcon(taskid,itemid);
 
 var text_disabled = ""
 if (tasks[taskid].status != null && tasks[taskid].status != "rejected") {
@@ -672,8 +674,14 @@ var taskRef = firebase.database().ref("groups/"+userjson.group+"/tasks");
 taskRef.on('value', function(snapshot) {
   updateTasksAndLists(snapshot.val());
 });
+var checkRef = firebase.database().ref("checks/"+firebase.auth().currentUser.uid);
+checkRef.on('value', function(snapshot) {
+  updateChecks(snapshot.val());
+});
 taskRefListenerActive = true;
 }
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
@@ -2270,7 +2278,7 @@ gid("task_"+taskid).querySelector(".add_item").style.display = "none";
 var childs = gid("task_"+taskid).querySelector(".task_items").children;
 
 for (var i = 0; i < childs.length-1; i++) {
-	childs[i].querySelector("i").innerHTML = "check_box_outline_blank";
+	childs[i].querySelector("i").innerHTML = determineIcon(taskid,childs[i].id.split("item_")[1]);
 	childs[i].querySelector("textarea").readOnly = true;
 }
 
@@ -2397,9 +2405,21 @@ var checkitemcurrent = false;
 function checkItem(taskid,itemid) {
 if (taskid !== edittask && tasks[taskid].status == "approved") {
 
+if (checks && checks.items && checks.items[taskid] && checks.items[taskid][itemid]) {
+if (checks.items[taskid][itemid].status == "approved") {
+	
+} else {
+if (checks.items[taskid][itemid].status == "partial") {
+	showAlert("Partial completion","This item is considered completed, but you have recieved either partial or no points towards the task")
+} else {
+	showAlert("Pending review...","This item must be reviewed before any points are issued")
+}
+}
+} else {
 	checkitemcurrent = [taskid,itemid];
 	openCheckItemScreen();
 	gid("check_text").innerHTML = '"'+htmlescape(tasks[taskid].items[itemid].text)+'"';
+}
 
 }
 }
@@ -2575,9 +2595,72 @@ function (snap) {
 
 hideAlert();
 closeCheckItemScreen();
+gid("item_"+itemid).querySelector("i").innerHTML = "access_time";
+if (!checks) {
+	checks = {};
+}
+if (!checks.items) {
+	checks.items = {}
+}
+if (!checks.items[taskid]) {
+	checks.items[taskid] = {}
+}
+checks.items[taskid][itemid] = {
+    excuse: excuse || null,
+	description: gid("desctext").value || null,
+	image: imgurl || null
+}
 
 }
 ).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }
+	
+}
+
+function determineIcon(taskid,itemid) {
+var m_icon = "drag_indicator"
+if (tasks[taskid].status == "approved") {
+if (checks && checks.items && checks.items[taskid] && checks.items[taskid][itemid]) {
+	m_icon = "access_time"
+if (checks.items[taskid][itemid].status == "approved") {
+	m_icon = "check_box"
+}
+if (checks.items[taskid][itemid].status == "partial") {
+	m_icon = "indeterminate_check_box"
+}
+} else {
+	m_icon = "check_box_outline_blank"
+}
+}
+return m_icon;
+}
+
+function updateChecks(new_checks) {
+
+checks = new_checks;
+
+for (var i = 0; i < Object.keys(tasks).length; i++) {
+
+var ctask = tasks[Object.keys(tasks)[i]];
+var ctaskid = Object.keys(tasks)[i];
+
+if (ctask.status == "approved") {
+for (var e = 0; e < Object.keys(ctask.items).length; e++) {
+
+var citem = ctask.items[Object.keys(ctask.items)[e]];
+var citemid = Object.keys(ctask.items)[e];
+
+if (gid("item_"+citemid) != null && edittask !== ctaskid) {
+gid("item_"+citemid).querySelector("i").innerHTML = determineIcon(ctaskid,citemid);
+}
+
+}
+}
+
+}
+
+}
+
+function calcPointsAndProgress() {
 	
 }
