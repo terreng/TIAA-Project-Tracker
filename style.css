@@ -890,6 +890,19 @@ height: 218px;
     vertical-align: top;
 }
 
+.prof_item .prof_detail {
+    font-size: 20px;
+}
+
+.prof_item .prof_detail i {
+    font-size: 25px;
+}
+
+.prof_item {
+    padding-left: 2px;
+    width: 100%;
+}
+
 .prof_details {
     padding-bottom: 6px;
     padding-top: 9px;

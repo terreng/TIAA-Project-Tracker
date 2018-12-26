@@ -1666,17 +1666,12 @@ function loadQueue() {
 	
 queue_content.innerHTML = real_spinner;
 	
-firebase.database().ref("users").once('value').then(function(snapshot) {
-	
-users = snapshot.val();
+firebase.database().ref("/").once('value').then(function(snapshot) {
 
-firebase.database().ref("private").once('value').then(function(snapshot) {
-	
-privateusers = snapshot.val() || {};
-
-firebase.database().ref("groups").once('value').then(function(snapshot) {
-	
-groups = snapshot.val();
+users = snapshot.val().users;
+groups = snapshot.val().groups;
+checks = snapshot.val().checks;
+privateusers = snapshot.val()['private'] || {};
 
 var pendhtml = "";
 
@@ -1778,7 +1773,7 @@ if (Object.keys(ctask.items).length > 1) {
 }
 }
 
-pendhtml += '<div class="approval_card" id="deleteapp_'+faketaskid+'" onclick="approveCard(\'deleteapp\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">delete</i></div><div class="app_right"><div class="app_title truncate">Task deletion request</div><div class="app_desc truncate">'+htmlescape(cgroup.name)+": "+htmlescape(ctask.name)+'</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">Team '+cgroup.name+' has requested to delete task &quot;'+ctask.name+'&quot;</center><center style="font-size: 18px;padding-top: 3px;">Task has '+itemam+'</center>'+itemhtml+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appRejectDelTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">close</i>Restore</div><div class="actionbar_item ac_green" onclick="appApproveDelTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">check</i>Delete</div></div></div></div>'
+pendhtml += '<div class="approval_card" id="deleteapp_'+faketaskid+'" onclick="approveCard(\'deleteapp\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">delete</i></div><div class="app_right"><div class="app_title truncate">Task deletion request</div><div class="app_desc truncate">'+htmlescape(cgroup.name)+": "+htmlescape(ctask.name)+'</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">Team '+cgroup.name+' has requested to delete task &quot;'+ctask.name+'&quot;</center><center style="font-size: 18px;padding-top: 3px;">Task has '+itemam+'. This action will result in the loss of any points earned towards this task by anyone in the group.</center>'+itemhtml+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appRejectDelTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">close</i>Restore</div><div class="actionbar_item ac_green" onclick="appApproveDelTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">check</i>Delete</div></div></div></div>'
 	
 }
 
@@ -1798,6 +1793,50 @@ var citem = ctask.items[Object.keys(ctask.items)[r]];
 }
 }
 
+if (checks != null) {
+for (var i = 0; i < Object.keys(checks).length; i++) {
+	
+var ccheck = checks[Object.keys(checks)[i]];
+var cuserid = Object.keys(checks)[i];
+
+for (var e = 0; e < Object.keys(ccheck.items).length; e++) {
+	
+var ctask = ccheck.items[Object.keys(ccheck.items)[e]];
+var ctaskid = Object.keys(ccheck.items)[e];
+var faketaskid = ctaskid.split("_").join("$");
+
+for (var r = 0; r < Object.keys(ctask).length; r++) {
+
+var citem = ctask[Object.keys(ctask)[r]];
+var citemid = Object.keys(ctask)[r];
+
+if (citem.status != null) {} else {
+
+if (citem.image) {
+var imgproof = '<img onload="proofImgLoaded(this)" style="max-width: 100%;max-height: 220px;" src="'+citem.image+'"></img>'
+} else {
+var imgproof = '<div style="height: 100px;width: 200px;background: #d6d6d6;border-radius:5px;margin-top: 0px;margin-bottom: 5px;display: block;"><i class="material-icons" style="font-size: 50px;color: #616161;text-align: center;width: 200px;padding-top: 12px;">photo_camera</i><div style="color: #616161;font-size: 20px;text-align: center;padding-top: 4px;">No image uploaded</div></div>'
+}
+
+if (citem.description) {
+var descproof = '<div style="font-size: 20px;padding-top: 2px;padding-bottom: 2px;margin-bottom: 5px;">&quot;'+htmlescape(citem.description)+'&quot;</div>'
+} else {
+var descproof = '<div style="font-size: 20px;padding-top: 2px;padding-bottom: 2px;margin-bottom: 5px;"><i>No description provided</i></div>'
+}
+
+if (!citem.description || !citem.image) {
+descproof += '<div style="font-size: 20px;padding: 4px;margin-top: 4px;background-color: #ffdabf;border-radius: 5px;margin-bottom: 7px;margin-top:0px;">Reason for missing info:<div style="padding-top: 5px;"></div>&quot;'+citem.excuse+'&quot;</div>';
+}
+	
+pendhtml += '<div class="approval_card" id="item_'+faketaskid+'" onclick="approveCard(\'item\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">check_box</i></div><div class="app_right"><div class="app_title truncate">Item awaiting review</div><div class="app_desc truncate">'+htmlescape(users[cuserid].name)+': &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">'+htmlescape(users[cuserid].name)+' has requested review for item &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</center><div class="prof_details prof_item"><div class="prof_detail"><i class="material-icons">group</i>'+htmlescape(groups[users[cuserid].group].name)+'</div><div class="prof_detail"><i class="material-icons">person</i>'+htmlescape(users[cuserid].name)+'</div><div class="prof_detail"><i class="material-icons">list_alt</i>'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].name)+'</div><div class="prof_detail"><i class="material-icons">check_box</i>&quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div>'+imgproof+descproof+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appDeclineItem(\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">close</i>Decline</div><div class="actionbar_item ac_green" onclick="appApproveItem(\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
+	
+}
+
+}
+}
+}
+}
+
 queue_content.innerHTML = pendhtml;
 
 expanded_cards = [];
@@ -1809,8 +1848,6 @@ approveCard(gid('queue_content').children[0].id.split("_")[0],gid('queue_content
 	
 }
 	
-}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
-}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
@@ -2696,4 +2733,59 @@ return [progress/Object.keys(ctask.items).length,Math.floor((ctask.points/Object
 return [0,0];
 }
 	
+}
+
+function appApproveItem(userid,taskid,itemid) {
+	
+var fake_task_id = taskid.split("_").join("$");
+	
+disableCard("item",fake_task_id);
+	
+showAlert('Approve item','<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" style="margin-bottom: 14px;" onclick="actualApproveItem(\''+userid+'\',\''+taskid+'\',\''+itemid+'\',1)"><div class="pa_left"><i class="material-icons">stars</i></div><div class="pa_right">Full points</div></div><div class="post_attach" style="margin-bottom: 14px;" onclick="actualApproveItem(\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0.5)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i><i class="material-icons" style="width: 16px;overflow: hidden;margin-left: -32px;">stars</i></div><div class="pa_right">Half points</div></div><div class="post_attach" style="margin-bottom: 10px;" onclick="actualApproveItem(\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i></div><div class="pa_right">No points</div></div></div>',"cancel",function() {});
+
+setTimeout(function() {
+	enableCard("item",fake_task_id);
+},0);
+	
+}
+
+function actualApproveItem(userid,taskid,itemid,points) {
+
+hideAlert();
+
+var fake_task_id = taskid.split("_").join("$");
+	
+disableCard("item",fake_task_id);
+
+firebase.database().ref('checks/'+userid+"/items/"+taskid+"/"+itemid).update({
+	status: "approved",
+	points: points
+}).then(function () {
+
+dismissCard("item",fake_task_id);
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+
+}
+
+function appDeclineItem(userid,taskid,itemid) {
+	
+var fake_task_id = taskid.split("_").join("$");
+	
+disableCard("item",fake_task_id);
+
+firebase.database().ref('checks/'+userid+"/items/"+taskid+"/"+itemid).set(null).then(function () {
+
+dismissCard("item",fake_task_id);
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function proofImgLoaded(img) {
+if (expanded_cards[0] == img.parentElement.parentElement.id) {
+
+img.parentElement.parentElement.style.height = (img.parentElement.clientHeight-12)+"px";
+
+}
 }
