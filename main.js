@@ -1434,6 +1434,7 @@ function loadGroups() {
 	
 gid("users_list").style.display = "block";
 gid("groups_list").style.display = "none";
+gid("user_bio").style.display = "none";
 
 user_list_content.innerHTML = real_spinner;
 
@@ -1453,7 +1454,7 @@ if (cgroup.members != null && cgroup.members.length > 0) {
 for (var e = 0; e < cgroup.members.length; e++) {
 var cuser = users[cgroup.members[e]];
 if (cuser && cuser.verified == true) {
-pendhtml += "<div class='user'><div><img src='"+cuser.picture.split("/mo/").join("/s84/")+"'></img></div><div>"+htmlescape(cuser.name)+"</div><div>0<i class='material-icons'>stars</i></div></div>";
+pendhtml += "<div class='user' onclick='openUser(\""+cgroup.members[e]+"\")'><div><img src='"+cuser.picture.split("/mo/").join("/s84/")+"'></img></div><div>"+htmlescape(cuser.name)+"</div><div>0<i class='material-icons'>stars</i></div></div>";
 users[cgroup.members[e]].ingroup = true;
 }
 }
@@ -1469,7 +1470,7 @@ if (users != null) {
 for (var i = 0; i < Object.keys(users).length; i++) {
 var cuser = users[Object.keys(users)[i]];
 if (cuser && cuser.verified == true && cuser.ingroup !== true && cuser.admin != "admin") {
-	nogrouphtml += "<div class='user'><div><img src='"+cuser.picture.split("/mo/").join("/s84/")+"'></img></div><div>"+htmlescape(cuser.name)+"</div><div class='assign' onclick='assignUser("+i+")'>Assign</div></div>";
+	nogrouphtml += "<div class='user'><div onclick='openUser(\""+Object.keys(users)[i]+"\")'><img src='"+cuser.picture.split("/mo/").join("/s84/")+"'></img></div><div onclick='openUser(\""+Object.keys(users)[i]+"\")'>"+htmlescape(cuser.name)+"</div><div class='assign' onclick='assignUser(\""+Object.keys(users)[i]+"\")'>Assign</div></div>";
 }
 }
 }
@@ -1485,9 +1486,13 @@ gid("user_list_content").innerHTML = pendhtml;
 	
 }
 
-function assignUser(id) {
+function assignUserGroup() {
+	assignUser(open_user);
+}
+
+function assignUser(uid) {
 	
-var cuser = users[Object.keys(users)[id]];
+var cuser = users[uid];
 var pendhtml = "<div style='overflow: hidden; margin-bottom: -10px;'>";
 
 for (var i = 0; i < Object.keys(groups).length; i++) {
@@ -1502,7 +1507,7 @@ userstring = " (1 member)"
 }
 }
 
-pendhtml += '<div class="post_attach" onclick="confirmAssign('+id+','+i+')"><div class="pa_left"><i class="material-icons">group</i></div><div class="pa_right">'+htmlescape(cgroup.name)+userstring+'</div></div>'
+pendhtml += '<div class="post_attach" onclick="confirmAssign(\''+uid+'\','+i+')"><div class="pa_left"><i class="material-icons">group</i></div><div class="pa_right">'+htmlescape(cgroup.name)+userstring+'</div></div>'
 	
 }
 
@@ -1514,7 +1519,7 @@ showAlert('Choose group for "'+htmlescape(cuser.name)+'"',pendhtml,"cancel",func
 
 function confirmAssign(userid,groupid) {
 	
-showAlert('Assign user "'+htmlescape(users[Object.keys(users)[userid]].name)+'" to group "'+htmlescape(groups[Object.keys(groups)[groupid]].name)+'"?',"","confirm",function(){actualAssign(userid,groupid)});
+showAlert('Assign user "'+htmlescape(users[userid].name)+'" to group "'+htmlescape(groups[Object.keys(groups)[groupid]].name)+'"?',"","confirm",function(){actualAssign(userid,groupid)});
 	
 }
 
@@ -1522,13 +1527,13 @@ function actualAssign(userid,groupid) {
 
 createPostProgress("Assigning user")
 
-firebase.database().ref("users/"+Object.keys(users)[userid]+"/group").set(Object.keys(groups)[groupid]).then(function() {
+firebase.database().ref("users/"+userid+"/group").set(Object.keys(groups)[groupid]).then(function() {
 	
 var mem_array = groups[Object.keys(groups)[groupid]].members;
 if (mem_array != null) {
-	mem_array.push(Object.keys(users)[userid]);
+	mem_array.push(userid);
 } else {
-	mem_array = [Object.keys(users)[userid]];
+	mem_array = [userid];
 }
 	
 firebase.database().ref("groups/"+Object.keys(groups)[groupid]+"/members").set(mem_array).then(function() {
@@ -1542,6 +1547,47 @@ loadGroups();
 
 }
 
+var open_user;
+
+function openUser(uid) {
+	
+open_user = uid;
+	
+gid("users_list").style.display = "none";
+gid("groups_list").style.display = "none";
+gid("user_bio").style.display = "block";
+
+gid("bio_name").innerHTML = htmlescape(users[uid].name);
+gid("bio_pic").src = users[uid].picture;
+var group_text = "Unassigned";
+gid("assign_button").innerHTML = "Assign group";
+if (users[uid].group) {
+	group_text = htmlescape(groups[users[uid].group].name);
+	gid("assign_button").innerHTML = "Change group";
+}
+gid("bio_details").innerHTML = '<div class="prof_detail truncate"><i class="material-icons">email</i>'+htmlescape(privateusers[uid].email)+'</div><div class="prof_detail truncate"><i class="material-icons">phone</i>'+formatPhone(privateusers[uid].phone)+'</div><div class="prof_detail truncate"><i class="custom-icons">0</i>'+htmlescape(users[uid].school)+'</div><div class="prof_detail truncate"><i class="material-icons">group</i>'+group_text+'</div>';
+	
+}
+
+function deleteUser() {
+	
+showAlert('Delete user "'+htmlescape(users[open_user].name)+'"?',"This action cannot be undone.","confirm",function(){actualUserDelete()});
+	
+}
+
+function actualUserDelete() {
+	
+createPostProgress("Deleting user")
+	
+firebase.database().ref('users/'+open_user+"/delete").set(true).then(function () {
+
+hideAlert();
+loadGroups();
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
 var groups;
 
 var real_spinner = '<div class="real_spinner"><svg class="spinner" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle class="path" fill="none" stroke-width="10" stroke-linecap="butt" cx="50" cy="50" r="40"></circle></svg></div>';
@@ -1550,6 +1596,7 @@ function manageGroups() {
 	
 gid("users_list").style.display = "none";
 gid("groups_list").style.display = "block";
+gid("user_bio").style.display = "none";
 
 group_list_content.innerHTML = real_spinner;
 
@@ -1673,6 +1720,7 @@ function groupsBack() {
 	
 gid("users_list").style.display = "block";
 gid("groups_list").style.display = "none";
+gid("user_bio").style.display = "none";
 loadGroups();
 	
 }
