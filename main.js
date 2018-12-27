@@ -681,10 +681,16 @@ if (taskRefListenerActive == false) {
 var taskRef = firebase.database().ref("groups/"+userjson.group+"/tasks");
 taskRef.on('value', function(snapshot) {
   updateTasksAndLists(snapshot.val());
+  if (location.hash == "#points") {
+	  loadPoints();
+  }
 });
 var checkRef = firebase.database().ref("checks/"+firebase.auth().currentUser.uid);
 checkRef.on('value', function(snapshot) {
   updateChecks(snapshot.val());
+  if (location.hash == "#points") {
+	  loadPoints();
+  }
 });
 taskRefListenerActive = true;
 }
@@ -2813,4 +2819,59 @@ setTimeout(function() {
 
 window.open(imgsrc, '_blank');
 	
+}
+
+function loadPoints() {
+if (tasks && checks) {
+gid("points_box").style.display = "block";
+gid("pointshistory_box").style.display = "block";
+gid("point_load").innerHTML = "";
+
+var pendhtml = "";
+var total = 0;
+
+if (checks != null) {
+for (var i = Object.keys(checks.items).length-1; i > -1; i--) {
+	
+var ctaskid = Object.keys(checks.items)[i];
+var ctask = checks.items[Object.keys(checks.items)[i]];
+var this_task_points = 0;
+
+if (ctask) {
+for (var e = 0; e < Object.keys(ctask).length; e++) {
+	
+var citem = ctask[Object.keys(ctask)[e]];
+var citemid = Object.keys(ctask)[e];
+
+if (citem.status && citem.points != null) {
+this_task_points += citem.points;
+}
+	
+}
+}
+
+if (tasks && tasks[ctaskid]) {
+var task_points = Math.floor((tasks[ctaskid].points/Object.keys(tasks[ctaskid].items).length)*this_task_points);
+
+pendhtml += '<div class="po_item"><div class="po_left"><div class="truncate">'+tasks[ctaskid].name+'</div><div class="truncate">'+tasks[ctaskid].points+'/'+tasks[ctaskid].orig_points+' points possible</div></div><div class="po_right">'+task_points+'<i class="material-icons">stars</i></div></div>'
+total += task_points;
+
+}
+	
+}
+}
+
+if (pendhtml.length > 0) {
+	gid("ph_content").innerHTML = pendhtml;
+} else {
+	
+}
+
+gid("point_number").innerHTML = total+" points";
+	
+} else {
+gid("points_box").style.display = "none";
+gid("pointshistory_box").style.display = "none";
+gid("point_load").innerHTML = real_spinner;
+}
 }

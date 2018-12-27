@@ -1168,6 +1168,7 @@ font-size: 30px;
 	float: left;
 	padding: 4px 3px;
 	padding-top: 4px;
+	cursor: pointer;
 }
 
 .task_top div:nth-child(2) i {
@@ -1225,6 +1226,7 @@ font-size: 30px;
 
 .task_item {
 	overflow: hidden;
+	cursor: pointer;
 }
 
 .task_item i:nth-child(1) {
@@ -1336,6 +1338,7 @@ font-size: 30px;
     margin-top: 2px;
     color: #2081d6;
     margin-right: 6px;
+	cursor: pointer;
 }
 
 .item_space {
@@ -1367,4 +1370,48 @@ color:gray;
 
 .error_gray .material-icons {
 font-size: 100px;
+}
+
+#home_content {
+    min-width: unset !important;
+    height: 100%;
+    max-width: 600px;
+    /*margin-left: calc(50% - 300px);*/
+}
+
+.po_item {
+    height: 50px;
+    margin-top: 10px;
+	padding-bottom: 2px;
+}
+
+.po_left {
+    float: left;
+    width: calc(100% - 75px);
+}
+
+.po_left div:nth-child(1) {
+    font-size: 20px;
+    padding-top: 1px;
+}
+
+.po_left div:nth-child(2) {
+    font-size: 17px;
+    padding-top: 2px;
+}
+
+.po_right {
+    font-size: 24px;
+    vertical-align: middle;
+    line-height: 49px;
+    float: left;
+    width: 75px;
+	text-align: right;
+}
+
+.po_right i {
+    font-size: 28px;
+    padding-bottom: 5px;
+    padding-left: 4px;
+    padding-righT: 4px;
 }

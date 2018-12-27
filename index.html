@@ -352,6 +352,43 @@ Cancel
 
 <div class="tabcontent" id="points_content">
 
+<div id="point_load">
+
+</div>
+
+<div class="container" id="points_box" style="display: block;">
+
+<center><i class="material-icons" style="
+    font-size: 100px;
+    text-align: center;
+">
+stars
+    </i></center>
+<div style="
+    font-size: 28px;
+    text-align: center;
+    padding-top: 4px;
+    padding-bottom: 4px;
+" id="point_number">255 points</div>
+
+</div>
+
+<div class="container" id="pointshistory_box" style="display: block;">
+
+<div style="
+    font-size: 20px;
+    margin-top: -5px;
+	padding-bottom: 1px;
+">Points history
+   </div>
+   
+<div id="ph_content">
+
+<div class="po_item"><div class="po_left"><div>Task name</div><div>20 points possible</div></div><div class="po_right">19<i class="material-icons">stars</i></div></div>
+
+</div>
+
+</div>
 
 </div>
 
@@ -524,7 +561,7 @@ gid("content").classList.add("content_desktop");
 
    WebFont.load( {
        custom: {
-           families: [ 'materialicons', 'roboto' ]
+           families: [ 'materialicons', 'roboto', 'customicons' ]
        },
        active: function() {
            initFunction()
