@@ -1581,7 +1581,7 @@ createPostProgress("Deleting user")
 	
 firebase.database().ref('users/'+open_user+"/delete").set(true).then(function () {
 
-hideAlert();
+showAlert("User pending deletion","This user account will be deleted momentarily")
 loadGroups();
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
@@ -1726,6 +1726,7 @@ loadGroups();
 }
 
 var users;
+var private_checks;
 
 function loadQueue() {
 	
@@ -1736,6 +1737,7 @@ firebase.database().ref("/").once('value').then(function(snapshot) {
 users = snapshot.val().users;
 groups = snapshot.val().groups;
 checks = snapshot.val().checks;
+private_checks = snapshot.val().private_checks;
 privateusers = snapshot.val()['private'] || {};
 
 var pendhtml = "";
@@ -1864,10 +1866,14 @@ for (var i = 0; i < Object.keys(checks).length; i++) {
 var ccheck = checks[Object.keys(checks)[i]];
 var cuserid = Object.keys(checks)[i];
 
-for (var e = 0; e < Object.keys(ccheck.items).length; e++) {
+for (var o = 0; o < Object.keys(ccheck.items).length; o++) {
 	
-var ctask = ccheck.items[Object.keys(ccheck.items)[e]];
-var ctaskid = Object.keys(ccheck.items)[e];
+var cgroupid = Object.keys(ccheck.items)[o];
+	
+for (var e = 0; e < Object.keys(ccheck.items[cgroupid]).length; e++) {
+	
+var ctask = ccheck.items[cgroupid][Object.keys(ccheck.items[cgroupid])[e]];
+var ctaskid = Object.keys(ccheck.items[cgroupid])[e];
 var faketaskid = ctaskid.split("_").join("$");
 
 for (var r = 0; r < Object.keys(ctask).length; r++) {
@@ -1875,28 +1881,32 @@ for (var r = 0; r < Object.keys(ctask).length; r++) {
 var citem = ctask[Object.keys(ctask)[r]];
 var citemid = Object.keys(ctask)[r];
 
-if (citem.status != null) {} else {
+if (citem.status == "waiting") {
+if (private_checks && private_checks[cuserid] && private_checks[cuserid].items && private_checks[cuserid].items[cgroupid] && private_checks[cuserid].items[cgroupid][ctaskid] && private_checks[cuserid].items[cgroupid][ctaskid][citemid]) {
+	
+var citemprivate = private_checks[cuserid].items[cgroupid][ctaskid][citemid];
 
-if (citem.image) {
-var imgproof = '<img onclick="imageClick(\''+ctaskid+'\',\''+citem.image+'\')" onload="proofImgLoaded(this)" style="max-width: 100%;max-height: 220px;" src="'+citem.image+'"></img>'
+if (citemprivate.image) {
+var imgproof = '<img onclick="imageClick(\''+ctaskid+'\',\''+citemprivate.image+'\')" onload="proofImgLoaded(this)" style="max-width: 100%;max-height: 220px;" src="'+citemprivate.image+'"></img>'
 } else {
 var imgproof = '<div style="height: 100px;width: 200px;background: #d6d6d6;border-radius:5px;margin-top: 0px;margin-bottom: 5px;display: block;"><i class="material-icons" style="font-size: 50px;color: #616161;text-align: center;width: 200px;padding-top: 12px;">photo_camera</i><div style="color: #616161;font-size: 20px;text-align: center;padding-top: 4px;">No image uploaded</div></div>'
 }
 
-if (citem.description) {
-var descproof = '<div style="font-size: 20px;padding-top: 4px;padding-bottom: 2px;margin-bottom: 5px;">&quot;'+htmlescape(citem.description)+'&quot;</div>'
+if (citemprivate.description) {
+var descproof = '<div style="font-size: 20px;padding-top: 4px;padding-bottom: 2px;margin-bottom: 5px;">&quot;'+htmlescape(citemprivate.description)+'&quot;</div>'
 } else {
 var descproof = '<div style="font-size: 20px;padding-top: 4px;padding-bottom: 2px;margin-bottom: 5px;"><i>No description provided</i></div>'
 }
 
-if (!citem.description || !citem.image) {
-descproof += '<div style="font-size: 20px;padding: 4px;margin-top: 4px;background-color: #ffdabf;border-radius: 5px;margin-bottom: 7px;margin-top:0px;">Reason for missing info:<div style="padding-top: 5px;"></div>&quot;'+citem.excuse+'&quot;</div>';
+if (!citemprivate.description || !citemprivate.image) {
+descproof += '<div style="font-size: 20px;padding: 4px;margin-top: 4px;background-color: #ffdabf;border-radius: 5px;margin-bottom: 7px;margin-top:0px;">Reason for missing info:<div style="padding-top: 5px;"></div>&quot;'+citemprivate.excuse+'&quot;</div>';
 }
 	
-pendhtml += '<div class="approval_card" id="item_'+faketaskid+'" onclick="approveCard(\'item\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="custom-icons">3</i></div><div class="app_right"><div class="app_title truncate">Item awaiting review</div><div class="app_desc truncate">'+htmlescape(users[cuserid].name)+': &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">'+htmlescape(users[cuserid].name)+' has requested review for item &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</center><div class="prof_details prof_item"><div class="prof_detail"><i class="material-icons">group</i>'+htmlescape(groups[users[cuserid].group].name)+'</div><div class="prof_detail"><i class="material-icons">person</i>'+htmlescape(users[cuserid].name)+'</div><div class="prof_detail"><i class="material-icons">list_alt</i>'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].name)+'</div><div class="prof_detail"><i class="material-icons">check_box</i>&quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div>'+imgproof+descproof+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appDeclineItem(\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">close</i>Decline</div><div class="actionbar_item ac_green" onclick="appApproveItem(\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
+pendhtml += '<div class="approval_card" id="item_'+faketaskid+'" onclick="approveCard(\'item\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="custom-icons">3</i></div><div class="app_right"><div class="app_title truncate">Item awaiting review</div><div class="app_desc truncate">'+htmlescape(users[cuserid].name)+': &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">'+htmlescape(users[cuserid].name)+' has requested review for item &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</center><div class="prof_details prof_item"><div class="prof_detail"><i class="material-icons">group</i>'+htmlescape(groups[users[cuserid].group].name)+'</div><div class="prof_detail"><i class="material-icons">person</i>'+htmlescape(users[cuserid].name)+'</div><div class="prof_detail"><i class="material-icons">list_alt</i>'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].name)+'</div><div class="prof_detail"><i class="material-icons">check_box</i>&quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div>'+imgproof+descproof+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appDeclineItem(\''+cgroupid+'\',\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">close</i>Decline</div><div class="actionbar_item ac_green" onclick="appApproveItem(\''+cgroupid+'\',\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
 	
 }
-
+}
+}
 }
 }
 }
@@ -2508,15 +2518,13 @@ var checkitemcurrent = false;
 function checkItem(taskid,itemid) {
 if (taskid !== edittask && tasks[taskid].status == "approved") {
 
-if (checks && checks.items && checks.items[taskid] && checks.items[taskid][itemid]) {
-if (checks.items[taskid][itemid].status == "approved") {
-	
-} else {
-if (checks.items[taskid][itemid].status == "partial") {
+if (checks && checks.items && checks.items[userjson.group] && checks.items[userjson.group][taskid] && checks.items[userjson.group][taskid][itemid]) {
+if (checks.items[userjson.group][taskid][itemid].status == "approved") {
+if (checks.items[userjson.group][taskid][itemid].points !== 1) {
 	showAlert("Partial completion","This item is considered completed, but you have recieved either partial or no points towards the task")
+}
 } else {
 	showAlert("Pending review...","This item must be reviewed before any points are issued")
-}
 }
 } else {
 	checkitemcurrent = [taskid,itemid];
@@ -2678,8 +2686,8 @@ if (selected_image) {
 createPostProgress("Uploading image");
 var file = selected_image;
 var ext = selected_image.type.replace("image/","");
-var uploadTask = firebase.storage().ref().child('users/'+firebase.auth().currentUser.uid+'/'+taskid+'/'+itemid+'.'+ext).put(file).then(function(snapshot) {
-databaseWrite('https://firebasestorage.googleapis.com/v0/b/tiaaprojecttracker.appspot.com/o/users%2F'+firebase.auth().currentUser.uid+'%2F'+taskid+'%2F'+itemid+'.'+ext+'?alt=media');
+var uploadTask = firebase.storage().ref().child('users/'+firebase.auth().currentUser.uid+'/'+itemid+'.'+ext).put(file).then(function(snapshot) {
+databaseWrite('https://firebasestorage.googleapis.com/v0/b/tiaaprojecttracker.appspot.com/o/users%2F'+firebase.auth().currentUser.uid+'%2F'+itemid+'.'+ext+'?alt=media');
 }).catch(function(error) {showAlert("Error","Error code: "+error.code+"<div style='padding-top: 10px'></div>"+"Server response:</br>"+error.serverResponse)});
 	
 } else {
@@ -2689,12 +2697,15 @@ databaseWrite('https://firebasestorage.googleapis.com/v0/b/tiaaprojecttracker.ap
 function databaseWrite(imgurl) {
 createPostProgress("Submitting");
 
-firebase.database().ref("checks/"+firebase.auth().currentUser.uid+"/items/"+taskid+"/"+itemid).set({
+firebase.database().ref("private_checks/"+firebase.auth().currentUser.uid+"/items/"+userjson.group+"/"+taskid+"/"+itemid).set({
     excuse: excuse || null,
 	description: gid("desctext").value || null,
 	image: imgurl || null
 }).then(
-function (snap) {
+function () {
+	
+firebase.database().ref("checks/"+firebase.auth().currentUser.uid+"/items/"+userjson.group+"/"+taskid+"/"+itemid+"/status").set("waiting").then(
+function () {
 
 hideAlert();
 closeCheckItemScreen();
@@ -2705,17 +2716,18 @@ if (!checks) {
 if (!checks.items) {
 	checks.items = {}
 }
-if (!checks.items[taskid]) {
-	checks.items[taskid] = {}
+if (!checks.items[userjson.group]) {
+	checks.items[userjson.group] = {}
 }
-checks.items[taskid][itemid] = {
-    excuse: excuse || null,
-	description: gid("desctext").value || null,
-	image: imgurl || null
+if (!checks.items[userjson.group][taskid]) {
+	checks.items[userjson.group][taskid] = {}
+}
+checks.items[userjson.group][taskid][itemid] = {
+    status: "waiting"
 }
 
-}
-).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }
 	
 }
@@ -2723,16 +2735,17 @@ checks.items[taskid][itemid] = {
 function determineIcon(taskid,itemid) {
 var m_icon = "drag_indicator"
 if (tasks[taskid].status == "approved") {
-if (checks && checks.items && checks.items[taskid] && checks.items[taskid][itemid]) {
-	m_icon = "access_time"
-if (checks.items[taskid][itemid].status == "approved") {
-	m_icon = "check_box"
+if (checks && checks.items && checks.items[userjson.group] && checks.items[userjson.group][taskid] && checks.items[userjson.group][taskid][itemid]) {
+	m_icon = "access_time";
+if (checks.items[userjson.group][taskid][itemid].status == "approved") {
+if (checks.items[userjson.group][taskid][itemid].points == 1) {
+	m_icon = "check_box";
+} else {
+	m_icon = "indeterminate_check_box";
 }
-if (checks.items[taskid][itemid].status == "partial") {
-	m_icon = "indeterminate_check_box"
 }
 } else {
-	m_icon = "check_box_outline_blank"
+	m_icon = "check_box_outline_blank";
 }
 }
 return m_icon;
@@ -2783,10 +2796,10 @@ for (var e = 0; e < Object.keys(ctask.items).length; e++) {
 var citem = ctask.items[Object.keys(ctask.items)[e]];
 var citemid = Object.keys(ctask.items)[e];
 
-if (checks && checks.items && checks.items[taskid] && checks.items[taskid][citemid] && checks.items[taskid][citemid].status) {
+if (checks && checks.items && checks.items[userjson.group] && checks.items[userjson.group][taskid] && checks.items[userjson.group][taskid][citemid] && checks.items[userjson.group][taskid][citemid].status) {
 	
 progress += 1;
-points += checks.items[taskid][citemid].points || 0;
+points += checks.items[userjson.group][taskid][citemid].points || 0;
 	
 }
 
@@ -2800,13 +2813,13 @@ return [0,0];
 	
 }
 
-function appApproveItem(userid,taskid,itemid) {
+function appApproveItem(groupid,userid,taskid,itemid) {
 	
 var fake_task_id = taskid.split("_").join("$");
 	
 disableCard("item",fake_task_id);
 	
-showAlert('Approve item','<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" style="margin-bottom: 14px;" onclick="actualApproveItem(\''+userid+'\',\''+taskid+'\',\''+itemid+'\',1)"><div class="pa_left"><i class="material-icons">stars</i></div><div class="pa_right">Full points</div></div><div class="post_attach" style="margin-bottom: 14px;" onclick="actualApproveItem(\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0.5)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i><i class="material-icons" style="width: 16px;overflow: hidden;margin-left: -32px;">stars</i></div><div class="pa_right">Half points</div></div><div class="post_attach" style="margin-bottom: 10px;" onclick="actualApproveItem(\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i></div><div class="pa_right">No points</div></div></div>',"cancel",function() {});
+showAlert('Approve item','<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" style="margin-bottom: 14px;" onclick="actualApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',1)"><div class="pa_left"><i class="material-icons">stars</i></div><div class="pa_right">Full points</div></div><div class="post_attach" style="margin-bottom: 14px;" onclick="actualApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0.5)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i><i class="material-icons" style="width: 16px;overflow: hidden;margin-left: -32px;">stars</i></div><div class="pa_right">Half points</div></div><div class="post_attach" style="margin-bottom: 10px;" onclick="actualApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i></div><div class="pa_right">No points</div></div></div>',"cancel",function() {});
 
 setTimeout(function() {
 	enableCard("item",fake_task_id);
@@ -2814,7 +2827,7 @@ setTimeout(function() {
 	
 }
 
-function actualApproveItem(userid,taskid,itemid,points) {
+function actualApproveItem(groupid,userid,taskid,itemid,points) {
 
 hideAlert();
 
@@ -2822,7 +2835,7 @@ var fake_task_id = taskid.split("_").join("$");
 	
 disableCard("item",fake_task_id);
 
-firebase.database().ref('checks/'+userid+"/items/"+taskid+"/"+itemid).update({
+firebase.database().ref('checks/'+userid+"/items/"+groupid+"/"+taskid+"/"+itemid).update({
 	status: "approved",
 	points: points
 }).then(function () {
@@ -2833,13 +2846,13 @@ dismissCard("item",fake_task_id);
 
 }
 
-function appDeclineItem(userid,taskid,itemid) {
+function appDeclineItem(groupid,userid,taskid,itemid) {
 	
 var fake_task_id = taskid.split("_").join("$");
 	
 disableCard("item",fake_task_id);
 
-firebase.database().ref('checks/'+userid+"/items/"+taskid+"/"+itemid).set(null).then(function () {
+firebase.database().ref('checks/'+userid+"/items/"+groupid+"/"+taskid+"/"+itemid).set(null).then(function () {
 
 dismissCard("item",fake_task_id);
 
@@ -2870,7 +2883,16 @@ window.open(imgsrc, '_blank');
 }
 
 function loadPoints() {
-if (tasks && checks) {
+if (checks) {
+
+gid("points_box").style.display = "none";
+gid("pointshistory_box").style.display = "none";
+gid("point_load").innerHTML = real_spinner;
+
+firebase.database().ref("groups").once('value').then(function(snapshot) {
+	
+groups = snapshot.val();
+	
 gid("points_box").style.display = "block";
 gid("pointshistory_box").style.display = "block";
 gid("point_load").innerHTML = "";
@@ -2881,8 +2903,12 @@ var total = 0;
 if (checks != null) {
 for (var i = Object.keys(checks.items).length-1; i > -1; i--) {
 	
-var ctaskid = Object.keys(checks.items)[i];
-var ctask = checks.items[Object.keys(checks.items)[i]];
+var cgroupid = Object.keys(checks.items)[i];
+	
+for (var r = Object.keys(checks.items[cgroupid]).length-1; r > -1; r--) {
+	
+var ctaskid = Object.keys(checks.items[cgroupid])[r];
+var ctask = checks.items[cgroupid][Object.keys(checks.items[cgroupid])[r]];
 var this_task_points = 0;
 
 if (ctask) {
@@ -2898,24 +2924,27 @@ this_task_points += citem.points;
 }
 }
 
-if (tasks && tasks[ctaskid]) {
-var task_points = Math.floor((tasks[ctaskid].points/Object.keys(tasks[ctaskid].items).length)*this_task_points);
+if (groups && groups[cgroupid] && groups[cgroupid].tasks) {
+var task_points = Math.floor((groups[cgroupid].tasks[ctaskid].points/Object.keys(groups[cgroupid].tasks[ctaskid].items).length)*this_task_points);
 
-pendhtml += '<div class="po_item"><div class="po_left"><div class="truncate">'+tasks[ctaskid].name+'</div><div class="truncate">'+tasks[ctaskid].points+'/'+tasks[ctaskid].orig_points+' points possible</div></div><div class="po_right">'+task_points+'<i class="material-icons">stars</i></div></div>'
+pendhtml += '<div class="po_item"><div class="po_left"><div class="truncate">'+groups[cgroupid].tasks[ctaskid].name+'</div><div class="truncate">'+groups[cgroupid].tasks[ctaskid].points+'/'+groups[cgroupid].tasks[ctaskid].orig_points+' points possible</div></div><div class="po_right">'+task_points+'<i class="material-icons">stars</i></div></div>'
 total += task_points;
 
 }
 	
 }
 }
+}
 
 if (pendhtml.length > 0) {
 	gid("ph_content").innerHTML = pendhtml;
 } else {
-	
+	gid("ph_content").innerHTML = '<div style="text-align: center;color: gray;padding-top: 18px;padding-bottom: 15px;font-size: 17px;">You haven\'t received any points yet</div>';
 }
 
 gid("point_number").innerHTML = total+" points";
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 } else {
 gid("points_box").style.display = "none";
