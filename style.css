@@ -1430,3 +1430,67 @@ font-size: 100px;
 	animation: 1s spin_twice forwards;
 	transform-origin: 50% 49.6%;
 }
+
+.lead_user {
+    overflow: hidden;
+    height: 42px;
+    margin-bottom: 10px;
+}
+
+.lead_user div:nth-child(1) {
+    float: left;
+    font-size: 18px;
+    line-height: 30px;
+    padding-top: 8px;
+    width: 48px;
+    text-align: left;
+}
+
+.lead_user div:nth-child(2) {
+    float: left;
+    width: 42px;
+}
+
+.lead_user div:nth-child(2) img {
+    height: 42px;
+    border-radius: 30px;
+}
+
+.lead_user div:nth-child(3) {
+    font-size: 20px;
+    float: left;
+    line-height: 43px;
+    padding-left: 12px;
+    width: calc(100% - 42px - 73px - 20px - 42px);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.lead_user div:nth-child(4) {
+    float: left;
+    font-size: 20px;
+    line-height: 25px;
+    padding-top: 8px;
+    width: 73px;
+    text-align: right;
+}
+
+.lead_user div:nth-child(4) i {
+    font-size: 26px;
+    vertical-align: top;
+    padding-left: 2px;
+}
+
+.active_tab {
+    font-weight: bold;
+}
+
+.active_tab .ac_line {
+    width: 100%;
+    height: 3px;
+    background-color: black;
+    margin-top: 2px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}

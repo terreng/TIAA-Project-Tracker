@@ -3164,3 +3164,160 @@ if (gid("refresh"+num)) {
 loadQueue();
 	
 }
+
+var lead_groups;
+var lead_users;
+var lead_checks;
+
+function loadLeaderboard() {
+	
+gid("lead_contents").style.display = "none";
+gid("lead_loader").style.display = "block";
+	
+firebase.database().ref("groups").once('value').then(function(snapshot) {
+lead_groups = snapshot.val();
+firebase.database().ref("users").once('value').then(function(snapshot) {
+lead_users = snapshot.val();
+firebase.database().ref("checks").once('value').then(function(snapshot) {
+lead_checks = snapshot.val();
+
+gid("lead_loader").style.display = "none";
+gid("lead_contents").style.display = "block";
+loadLead(1);
+
+})//.catch(function(error) {showAlert("Error","Error code: "+error.code)});
+})//.catch(function(error) {showAlert("Error","Error code: "+error.code)});
+})//.catch(function(error) {showAlert("Error","Error code: "+error.code)});
+
+}
+
+function loadLead(tab) {
+
+gid("tab_1").classList.remove("active_tab");
+gid("tab_2").classList.remove("active_tab");
+gid("tab_"+tab).classList.add("active_tab");
+
+var userpoints_array = [];
+
+if (lead_users != null) {
+for (var o = 0; o < Object.keys(lead_users).length; o++) {
+	
+var userid = Object.keys(lead_users)[o];
+
+if (lead_users[userid].admin == "admin") {
+	continue;
+}
+	
+var total = 0;
+
+if (lead_checks != null && lead_checks[userid] != null) {
+for (var i = Object.keys(lead_checks[userid].items).length-1; i > -1; i--) {
+	
+var cgroupid = Object.keys(lead_checks[userid].items)[i];
+	
+for (var r = Object.keys(lead_checks[userid].items[cgroupid]).length-1; r > -1; r--) {
+	
+var ctaskid = Object.keys(lead_checks[userid].items[cgroupid])[r];
+var ctask = lead_checks[userid].items[cgroupid][Object.keys(lead_checks[userid].items[cgroupid])[r]];
+var this_task_points = 0;
+
+if (ctask) {
+for (var e = 0; e < Object.keys(ctask).length; e++) {
+	
+var citem = ctask[Object.keys(ctask)[e]];
+var citemid = Object.keys(ctask)[e];
+
+if (citem.status && citem.points != null) {
+this_task_points += citem.points;
+}
+	
+}
+}
+
+if (lead_groups && lead_groups[cgroupid] && lead_groups[cgroupid].tasks && lead_groups[cgroupid].tasks[ctaskid]) {
+var task_points = Math.floor((lead_groups[cgroupid].tasks[ctaskid].points/Object.keys(lead_groups[cgroupid].tasks[ctaskid].items).length)*this_task_points);
+
+total += task_points;
+}
+	
+}
+}
+}
+
+userpoints_array.push([userid,total]);
+	
+}
+}
+
+if (tab == 1) {
+function pointSort(a,b) {
+	return b[1] - a[1];
+}
+userpoints_array = userpoints_array.sort(pointSort);
+
+var pendhtml = "";
+var this_position = 0;
+var last_score = -1;
+	
+for (var i = 0; i < userpoints_array.length; i++) {
+
+if (userpoints_array[i][1] < last_score || last_score == -1) {
+	this_position += 1;
+}
+
+last_score = userpoints_array[i][1];
+
+var bold_string = "";
+if (userjson && userjson.verified && userpoints_array[i][0] == firebase.auth().currentUser.uid) {
+	bold_string = " style='font-weight:bold;' "
+}
+
+pendhtml += '<div class="lead_user"'+bold_string+'><div>#'+this_position+'</div><div><img src="'+lead_users[userpoints_array[i][0]].picture.split("/mo/").join("/s84/")+'"></div><div>'+lead_users[userpoints_array[i][0]].name+'</div><div>'+userpoints_array[i][1]+'<i class="material-icons">stars</i></div></div>';
+	
+}
+}
+if (tab == 2) {
+var pendhtml = "";
+
+var groups_points = [];
+var group_positions = {};
+
+for (var i = 0; i < userpoints_array.length; i++) {
+
+if (group_positions[lead_users[userpoints_array[i][0]].group] != null) {
+groups_points[group_positions[lead_users[userpoints_array[i][0]].group]][1] += userpoints_array[i][1];
+} else {
+group_positions[lead_users[userpoints_array[i][0]].group] = groups_points.length;
+groups_points.push([lead_users[userpoints_array[i][0]].group,userpoints_array[i][1]]);
+}
+	
+}
+
+function point2Sort(a,b) {
+	return b[1] - a[1];
+}
+groups_points = groups_points.sort(point2Sort);
+
+var this_position = 0;
+var last_score = -1;
+
+for (var i = 0; i < groups_points.length; i++) {
+if (groups_points[i][1] < last_score || last_score == -1) {
+	this_position += 1;
+}
+
+last_score = groups_points[i][1];
+
+var bold_string = "";
+if (userjson && userjson.verified && groups_points[i][0] == userjson.group) {
+	bold_string = " style='font-weight:bold;' "
+}
+
+pendhtml += '<div class="lead_user"'+bold_string+'><div>#'+this_position+'</div><div><i class="material-icons" style="font-size: 42px;">groups</i></div><div>'+lead_groups[groups_points[i][0]].name+'</div><div>'+groups_points[i][1]+'<i class="material-icons">stars</i></div></div>'
+}
+	
+}
+
+gid("lead_box").innerHTML = pendhtml;
+	
+}
