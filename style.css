@@ -62,7 +62,6 @@ top: 58px;
 bottom: 0px;
 left: 0px;
 right: 0px;
-overscroll-behavior: none;
 }
 
 .overlay-m {
@@ -1379,7 +1378,7 @@ font-size: 100px;
 
 .po_left {
     float: left;
-    width: calc(100% - 75px);
+    width: calc(100% - 77px);
 }
 
 .po_left div:nth-child(1) {
@@ -1397,8 +1396,11 @@ font-size: 100px;
     vertical-align: middle;
     line-height: 49px;
     float: left;
-    width: 75px;
+    width: 77px;
 	text-align: right;
+	overflow: hidden;
+    height: 47px;
+    white-space: nowrap;
 }
 
 .po_right i {
@@ -1434,7 +1436,7 @@ font-size: 100px;
 .lead_user {
     overflow: hidden;
     height: 42px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .lead_user div:nth-child(1) {

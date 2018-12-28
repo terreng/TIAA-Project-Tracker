@@ -727,7 +727,7 @@ checkRef.on('value', function(snapshot) {
 });
 taskRefListenerActive = true;
 }
-if (taskRefListenerActive == "partial") {
+if (taskRefListenerActive == "almost") {
 checkRef.off();
 taskRef = firebase.database().ref("groups/"+userjson.group+"/tasks");
 taskRef.on('value', function(snapshot) {
@@ -1484,6 +1484,12 @@ function getUserPoints(userid) {
 var total = 0;
 
 if (checks != null && checks[userid] != null) {
+if (checks[userid].points != null) {
+for (var i = Object.keys(checks[userid].points).length-1; i > -1; i--) {
+	total += checks[userid].points[Object.keys(checks[userid].points)[i]].points;
+}
+}
+	
 for (var i = Object.keys(checks[userid].items).length-1; i > -1; i--) {
 	
 var cgroupid = Object.keys(checks[userid].items)[i];
@@ -1515,6 +1521,10 @@ total += task_points;
 	
 }
 }
+}
+
+if (total < 0) {
+	total = 0;
 }
 
 return total;
@@ -1717,7 +1727,7 @@ if (groups && groups[users[uid].group]) {
 	group_text = grn;
 	gid("assign_button").innerHTML = "Change group";
 }
-gid("bio_details").innerHTML = '<div class="prof_detail truncate"><i class="material-icons">email</i>'+htmlescape(privateusers[uid].email)+'</div><div class="prof_detail truncate"><i class="material-icons">phone</i>'+formatPhone(privateusers[uid].phone)+'</div><div class="prof_detail truncate"><i class="custom-icons">0</i>'+htmlescape(users[uid].school)+'</div><div class="prof_detail truncate"><i class="material-icons">group</i>'+group_text+'</div><div class="prof_detail truncate"><i class="material-icons">stars</i>'+getUserPoints(uid)+'</div>';
+gid("bio_details").innerHTML = '<div class="prof_detail truncate"><i class="material-icons">email</i>'+htmlescape(privateusers[uid].email)+'</div><a style="color: black;" href="sms:/'+privateusers[uid].phone+'"><div class="prof_detail truncate"><i class="material-icons">phone</i>'+formatPhone(privateusers[uid].phone)+'</div></a><div class="prof_detail truncate"><i class="custom-icons">0</i>'+htmlescape(users[uid].school)+'</div><div class="prof_detail truncate"><i class="material-icons">group</i>'+group_text+'</div><div class="prof_detail truncate"><i class="material-icons">stars</i>'+getUserPoints(uid)+'</div>';
 	
 }
 
@@ -1737,6 +1747,49 @@ showAlert("User pending deletion","This user account will be deleted momentarily
 loadGroups();
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+}
+
+function giveUserPoints() {
+	
+showAlert('Give "'+htmlescape(users[open_user].name)+'" points','<input onkeypress="if(event.keyCode==13) {this.nextSibling.focus()}" type="tel" style="margin-bottom: 12px;" class="c_text" id="pointvalue" placeholder="Points"><input onkeypress="if(event.keyCode==13) {valGiveUserPoints()}" class="c_text" id="pointdesc" placeholder="Short description"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="points_error_text"></div>',"submit",function(){valGiveUserPoints()});
+
+gid("pointvalue").focus();
+	
+}
+
+function valGiveUserPoints() {
+	
+var vpoints = gid("pointvalue").value;
+var vdesc = gid("pointdesc").value;
+
+if (vpoints.length > 0 && String(vpoints) == String(Number(vpoints)) && String(vpoints) != "NaN" && !(vpoints > 999) && !(vpoints < -999)) {
+	
+if (vdesc.length > 0) {
+	
+createPostProgress("Giving user points");
+
+firebase.database().ref("checks/"+open_user+"/points").push({
+    points : Number(vpoints),
+	desc : vdesc
+}).then(
+function (snap) {
+
+hideAlert();
+loadGroups();
+
+}
+).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+	
+} else {
+	points_error_text.innerHTML = "Please enter a short description";
+	gid("pointdesc").focus();
+}
+	
+} else {
+	points_error_text.innerHTML = "Please enter a valid point value";
+	gid("pointvalue").focus();
+}
 	
 }
 
@@ -2433,7 +2486,7 @@ setTimeout(function() {
 	enableCard("taskapp",fake_task_id);
 },0)
 	
-showAlert("Approve task",'<div style="padding-bottom: 12px;">How many points is this task worth?</div><input onkeypress="if(event.keyCode==13) {valApproveTask(\''+groupid+'\',\''+taskid+'\',\''+fake_task_id+'\')}" class="c_text" id="taskpoints" placeholder="Points"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="group_error_text"></div>',"submit",function() {valApproveTask(groupid,taskid,fake_task_id)})
+showAlert("Approve task",'<div style="padding-bottom: 12px;">How many points is this task worth?</div><input onkeypress="if(event.keyCode==13) {valApproveTask(\''+groupid+'\',\''+taskid+'\',\''+fake_task_id+'\')}" class="c_text" type="tel" id="taskpoints" placeholder="Points"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="group_error_text"></div>',"submit",function() {valApproveTask(groupid,taskid,fake_task_id)})
 	
 taskpoints.focus();
 	
@@ -2443,7 +2496,7 @@ function valApproveTask(groupid,taskid,fake_task_id) {
 	
 var pnts = taskpoints.value;
 
-if (pnts.length > 0 && String(pnts) == String(Number(pnts)) && String(pnts) != "NaN" && !(pnts > 999)) {
+if (pnts.length > 0 && String(pnts) == String(Number(pnts)) && String(pnts) != "NaN" && !(pnts > 999) && pnts > 0) {
 	
 hideAlert();
 	
@@ -3091,8 +3144,21 @@ gid("point_load").innerHTML = "";
 
 var pendhtml = "";
 var total = 0;
+var history_entries = [];
 
 if (checks != null) {
+
+if (checks.points != null) {
+for (var i = Object.keys(checks.points).length-1; i > -1; i--) {
+if (checks.points[Object.keys(checks.points)[i]].points > 0) {
+	history_entries.push([Object.keys(checks.points)[i],'<div class="po_item"><div class="po_left"><div class="truncate">Bonus points</div><div class="truncate">'+checks.points[Object.keys(checks.points)[i]].desc+'</div></div><div class="po_right">'+checks.points[Object.keys(checks.points)[i]].points+'<i class="material-icons">stars</i></div></div>']);
+} else {
+	history_entries.push([Object.keys(checks.points)[i],'<div class="po_item"><div class="po_left"><div class="truncate">Penalty</div><div class="truncate">'+checks.points[Object.keys(checks.points)[i]].desc+'</div></div><div class="po_right" style="color:red;">'+checks.points[Object.keys(checks.points)[i]].points+'<i class="material-icons" style="color:black;">stars</i></div></div>']);
+}
+total += checks.points[Object.keys(checks.points)[i]].points;
+}
+}
+
 for (var i = Object.keys(checks.items).length-1; i > -1; i--) {
 	
 var cgroupid = Object.keys(checks.items)[i];
@@ -3125,19 +3191,34 @@ if (pen !== 0) {
 	pen_string = " <span style='color: red'>("+String(pen)+")</span>";
 }
 
-pendhtml += '<div class="po_item"><div class="po_left"><div class="truncate">'+groups[cgroupid].tasks[ctaskid].name+'</div><div class="truncate">'+groups[cgroupid].tasks[ctaskid].points+'/'+groups[cgroupid].tasks[ctaskid].orig_points+' points possible'+pen_string+'</div></div><div class="po_right">'+task_points+'<i class="material-icons">stars</i></div></div>'
+history_entries.push([ctaskid,'<div class="po_item"><div class="po_left"><div class="truncate">'+groups[cgroupid].tasks[ctaskid].name+'</div><div class="truncate">'+groups[cgroupid].tasks[ctaskid].points+'/'+groups[cgroupid].tasks[ctaskid].orig_points+' points possible'+pen_string+'</div></div><div class="po_right">'+task_points+'<i class="material-icons">stars</i></div></div>']);
 total += task_points;
 
 }
 	
 }
 }
+
+}
+
+history_entries.sort(function(b, a){
+    if(a[0] < b[0]) { return -1; }
+    if(a[0] > b[0]) { return 1; }
+    return 0;
+})
+
+for (var i = 0; i < history_entries.length; i++) {
+	pendhtml += history_entries[i][1];
 }
 
 if (pendhtml.length > 0) {
 	gid("ph_content").innerHTML = pendhtml;
 } else {
 	gid("ph_content").innerHTML = '<div style="text-align: center;color: gray;padding-top: 18px;padding-bottom: 15px;font-size: 17px;">You haven\'t received any points yet</div>';
+}
+
+if (total < 0) {
+	total = 0;
 }
 
 gid("point_number").innerHTML = total+" points";
@@ -3211,6 +3292,12 @@ if (lead_users[userid].admin == "admin") {
 var total = 0;
 
 if (lead_checks != null && lead_checks[userid] != null) {
+if (lead_checks[userid].points != null) {
+for (var i = Object.keys(lead_checks[userid].points).length-1; i > -1; i--) {
+	total += lead_checks[userid].points[Object.keys(lead_checks[userid].points)[i]].points;
+}
+}
+
 for (var i = Object.keys(lead_checks[userid].items).length-1; i > -1; i--) {
 	
 var cgroupid = Object.keys(lead_checks[userid].items)[i];
@@ -3242,6 +3329,10 @@ total += task_points;
 	
 }
 }
+}
+
+if (total < 0) {
+	total = 0;
 }
 
 userpoints_array.push([userid,total]);
