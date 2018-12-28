@@ -14,11 +14,12 @@ html {
 
 body {
 margin: 0;
+overflow: hidden;
 background-color: #eaedf2;
 font-family: 'roboto', sans-serif;
 -webkit-overflow-scrolling: touch !important;
-	height: 100%;
-	width: 100%;
+height: 100%;
+width: 100%;
 }
 
 ol {

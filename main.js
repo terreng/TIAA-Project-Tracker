@@ -78,7 +78,11 @@ provider.setCustomParameters({
   'hd': 'apps4pps.net'
 });
 //provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+if (isios) {
+firebase.auth().signInWithPopup(provider);
+} else {
 firebase.auth().signInWithRedirect(provider);
+}
 }
 
 function readyFunction() {
@@ -207,11 +211,11 @@ gid("profile_photo").style.display = "block";
 if (userjson && userjson.group) {
 gid("home_button").style.display = "block";
 if (["#home","#points","#leaderboard","#settings"].indexOf(location.hash) == -1) {
-location.hash = "#home";
+history.replaceState(undefined, undefined, "#home");
 }
 } else {
 if (["#points","#leaderboard","#settings"].indexOf(location.hash) == -1) {
-location.hash = "#settings";
+history.replaceState(undefined, undefined, "#settings");
 }
 }
 gid("points_button").style.display = "block";
@@ -221,7 +225,7 @@ gid("groups_button").style.display = "block";
 gid("queue_button").style.display = "block";
 gid("leaderboard_button").style.display = "block";
 if (["#queue","#groups","#leaderboard","#settings"].indexOf(location.hash) == -1) {
-location.hash = "#queue";
+history.replaceState(undefined, undefined, "#queue");
 }
 }
 
@@ -235,7 +239,7 @@ gid("queue_button").style.display = "none";
 gid("settings_button").style.display = "none";
 gid("leaderboard_button").style.display = "none";
 gid("welcome_button").style.display = "block";
-	location.hash = "#welcome";
+	history.replaceState(undefined, undefined, "#welcome");
 	loadSetup();
 }
 
@@ -2007,6 +2011,7 @@ for (var r = 0; r < Object.keys(ctask).length; r++) {
 
 var citem = ctask[Object.keys(ctask)[r]];
 var citemid = Object.keys(ctask)[r];
+var fakeitemid = citemid.split("_").join("$");
 
 if (citem.status == "waiting") {
 if (private_checks && private_checks[cuserid] && private_checks[cuserid].items && private_checks[cuserid].items[cgroupid] && private_checks[cuserid].items[cgroupid][ctaskid] && private_checks[cuserid].items[cgroupid][ctaskid][citemid]) {
@@ -2014,7 +2019,7 @@ if (private_checks && private_checks[cuserid] && private_checks[cuserid].items &
 var citemprivate = private_checks[cuserid].items[cgroupid][ctaskid][citemid];
 
 if (citemprivate.image) {
-var imgproof = '<img onclick="imageClick(\''+ctaskid+'\',\''+citemprivate.image+'\')" onload="proofImgLoaded(this)" style="max-width: 100%;max-height: 220px;" src="'+citemprivate.image+'"></img>'
+var imgproof = '<img onclick="imageClick(\''+fakeitemid+'\',\''+cuserid+'\',\''+citemprivate.image+'\')" onload="proofImgLoaded(this)" style="height: 0px;max-width: 100%;max-height: 220px;" src="'+citemprivate.image+'"></img><div style="background-color: rgb(138, 171, 138);width: 250px;text-align: center;font-size: 22px;color: white;border-radius: 6px;padding-top: 60px;padding-bottom: 61px;margin-top: -20px;margin-bottom: 4px;">Image loading...</div>'
 } else {
 var imgproof = '<div style="height: 100px;width: 200px;background: #d6d6d6;border-radius:5px;margin-top: 0px;margin-bottom: 5px;display: block;"><i class="material-icons" style="font-size: 50px;color: #616161;text-align: center;width: 200px;padding-top: 12px;">photo_camera</i><div style="color: #616161;font-size: 20px;text-align: center;padding-top: 4px;">No image uploaded</div></div>'
 }
@@ -2029,7 +2034,7 @@ if (!citemprivate.description || !citemprivate.image) {
 descproof += '<div style="font-size: 20px;padding: 4px;margin-top: 4px;background-color: #ffdabf;border-radius: 5px;margin-bottom: 7px;margin-top:0px;">Reason for missing info:<div style="padding-top: 5px;"></div>&quot;'+citemprivate.excuse+'&quot;</div>';
 }
 	
-pendhtml += '<div class="approval_card" id="item_'+faketaskid+'" onclick="approveCard(\'item\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="custom-icons">3</i></div><div class="app_right"><div class="app_title truncate">Item awaiting review</div><div class="app_desc truncate">'+htmlescape(users[cuserid].name)+': &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">'+htmlescape(users[cuserid].name)+' has requested review for item &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</center><div class="prof_details prof_item"><div class="prof_detail"><i class="material-icons">group</i>'+htmlescape(groups[users[cuserid].group].name)+'</div><div class="prof_detail"><i class="material-icons">person</i>'+htmlescape(users[cuserid].name)+'</div><div class="prof_detail"><i class="material-icons">list_alt</i>'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].name)+'</div><div class="prof_detail"><i class="material-icons">check_box</i>&quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div>'+imgproof+descproof+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appDeclineItem(\''+cgroupid+'\',\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">close</i>Decline</div><div class="actionbar_item ac_green" onclick="appApproveItem(\''+cgroupid+'\',\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
+pendhtml += '<div class="approval_card" id="item_'+fakeitemid+'!!!!'+cuserid+'" onclick="approveCard(\'item\',\''+fakeitemid+'!!!!'+cuserid+'\')"><div class="unexp"><div class="app_left"><i class="custom-icons">3</i></div><div class="app_right"><div class="app_title truncate">Item awaiting review</div><div class="app_desc truncate">'+htmlescape(users[cuserid].name)+': &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">'+htmlescape(users[cuserid].name)+' has requested review for item &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</center><div class="prof_details prof_item"><div class="prof_detail"><i class="material-icons">group</i>'+htmlescape(groups[users[cuserid].group].name)+'</div><div class="prof_detail"><i class="material-icons">person</i>'+htmlescape(users[cuserid].name)+'</div><div class="prof_detail"><i class="material-icons">list_alt</i>'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].name)+'</div><div class="prof_detail"><i class="material-icons">check_box</i>&quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div>'+imgproof+descproof+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appDeclineItem(\''+cgroupid+'\',\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">close</i>Decline</div><div class="actionbar_item ac_green" onclick="appApproveItem(\''+cgroupid+'\',\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
 	
 }
 }
@@ -2854,7 +2859,6 @@ function () {
 
 hideAlert();
 closeCheckItemScreen();
-gid("item_"+itemid).querySelector("i").innerHTML = "access_time";
 if (!checks) {
 	checks = {};
 }
@@ -2963,14 +2967,14 @@ return [0,0];
 
 function appApproveItem(groupid,userid,taskid,itemid) {
 	
-var fake_task_id = taskid.split("_").join("$");
+var fakeitemid = itemid.split("_").join("$");
 	
-disableCard("item",fake_task_id);
+disableCard("item",fakeitemid+"!!!!"+userid);
 	
 showAlert('Approve item','<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" style="margin-bottom: 14px;" onclick="actualApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',1)"><div class="pa_left"><i class="material-icons">stars</i></div><div class="pa_right">Full points</div></div><div class="post_attach" style="margin-bottom: 14px;" onclick="actualApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0.5)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i><i class="material-icons" style="width: 16px;overflow: hidden;margin-left: -32px;">stars</i></div><div class="pa_right">Half points</div></div><div class="post_attach" style="margin-bottom: 10px;" onclick="actualApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i></div><div class="pa_right">No points</div></div></div>',"cancel",function() {});
 
 setTimeout(function() {
-	enableCard("item",fake_task_id);
+	enableCard("item",fakeitemid+"!!!!"+userid);
 },0);
 	
 }
@@ -2979,16 +2983,16 @@ function actualApproveItem(groupid,userid,taskid,itemid,points) {
 
 hideAlert();
 
-var fake_task_id = taskid.split("_").join("$");
+var fakeitemid = itemid.split("_").join("$");
 	
-disableCard("item",fake_task_id);
+disableCard("item",fakeitemid+"!!!!"+userid);
 
 firebase.database().ref('checks/'+userid+"/items/"+groupid+"/"+taskid+"/"+itemid).update({
 	status: "approved",
 	points: points
 }).then(function () {
 
-dismissCard("item",fake_task_id);
+dismissCard("item",fakeitemid+"!!!!"+userid);
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 
@@ -2996,19 +3000,21 @@ dismissCard("item",fake_task_id);
 
 function appDeclineItem(groupid,userid,taskid,itemid) {
 	
-var fake_task_id = taskid.split("_").join("$");
+var fakeitemid = itemid.split("_").join("$");
 	
-disableCard("item",fake_task_id);
+disableCard("item",fakeitemid+"!!!!"+userid);
 
 firebase.database().ref('checks/'+userid+"/items/"+groupid+"/"+taskid+"/"+itemid).set(null).then(function () {
 
-dismissCard("item",fake_task_id);
+dismissCard("item",fakeitemid+"!!!!"+userid);
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
 
 function proofImgLoaded(img) {
+img.nextSibling.style.display = "none";
+img.style.height = "";
 if (expanded_cards[0] == img.parentElement.parentElement.id) {
 
 img.parentElement.parentElement.style.height = (img.parentElement.clientHeight-12)+"px";
@@ -3016,14 +3022,14 @@ img.parentElement.parentElement.style.height = (img.parentElement.clientHeight-1
 }
 }
 
-function imageClick(taskid,imgsrc) {
+function imageClick(itemid,userid,imgsrc) {
 	
-var fake_task_id = taskid.split("_").join("$");
+var fakeitemid = itemid.split("_").join("$");
 
-disableCard("item",fake_task_id);
+disableCard("item",fakeitemid+"!!!!"+userid);
 
 setTimeout(function() {
-	enableCard("item",fake_task_id);
+	enableCard("item",fakeitemid+"!!!!"+userid);
 },0);
 
 window.open(imgsrc, '_blank');
