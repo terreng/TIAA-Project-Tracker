@@ -642,6 +642,7 @@ for (var r = 0; r < task_sort.length; r++) {
 
 if (tasks[taskid].status == "pending") {
 	banner = '<div class="task_edit"><div>Waiting for approval...</div><div onclick="cancelTask(\''+taskid+'\')">Cancel</div></div>';
+	task_class = "";
 }
 if (tasks[taskid].status == "rejected") {
 	banner = '<div class="task_edit"><div>Draft was rejected</div><div onclick="submitTask(\''+taskid+'\')">Submit</div></div>'
@@ -652,6 +653,7 @@ if (tasks[taskid].status == "approved") {
 }
 if (tasks[taskid].status == "delete") {
 	banner = '<div class="task_edit"><div>Pending deletion...</div><div onclick="cancelTaskDelete(\''+taskid+'\')">Cancel</div></div>';
+	task_class = "";
 }
 
 var task_add = '<div class="task_item add_item" onclick="addItem(\''+taskid+'\')"><i class="material-icons">add</i><div>Add item</div></div>';
@@ -688,7 +690,7 @@ if (!ccitem.classList.contains("add_item") && ccitem.querySelector("textarea")) 
 	
 var textarea = tasks_list.children[i].querySelector(".task_items").children[e].querySelector("textarea");
 	
-initTextarea(textarea,cctask.id.split("task_")[1],tasks[cctask.id.split("task_")[1]].status == "pending",tasks[cctask.id.split("task_")[1]].status == "approved");
+initTextarea(textarea,cctask.id.split("task_")[1],tasks[cctask.id.split("task_")[1]].status == "pending" || tasks[cctask.id.split("task_")[1]].status == "delete",tasks[cctask.id.split("task_")[1]].status == "approved");
 	
 }	
 }	
@@ -1196,6 +1198,7 @@ for (var i = 0; i < childs.length; i++) {
 }
 }
 }
+
 }
 
 function redrawJustOrder(ctaskid) {
@@ -2693,6 +2696,7 @@ gid("menu_icon").style.display = "block";
 gid("check_content").style.display = "none";
 gid("home_content").style.display = "block";
 gid("navtitle").innerHTML = "Projects";
+loadHome();
 	
 }
 
@@ -2869,7 +2873,7 @@ checks.items[userjson.group][taskid][itemid] = {
 
 function determineIcon(taskid,itemid) {
 var m_icon = "drag_indicator"
-if (tasks[taskid].status == "approved") {
+if (tasks[taskid].status == "approved" || tasks[taskid].status == "delete") {
 if (checks && checks.items && checks.items[userjson.group] && checks.items[userjson.group][taskid] && checks.items[userjson.group][taskid][itemid]) {
 	m_icon = "access_time";
 if (checks.items[userjson.group][taskid][itemid].status == "approved") {
@@ -2882,6 +2886,9 @@ if (checks.items[userjson.group][taskid][itemid].points == 1) {
 } else {
 	m_icon = "check_box_outline_blank";
 }
+}
+if (tasks[taskid].status == "pending") {
+	m_icon = "check_box_outline_blank";
 }
 return m_icon;
 }

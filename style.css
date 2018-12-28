@@ -16,7 +16,6 @@ body {
 margin: 0;
 background-color: #eaedf2;
 font-family: 'roboto', sans-serif;
-overflow: hidden;
 -webkit-overflow-scrolling: touch !important;
 	height: 100%;
 	width: 100%;
@@ -1372,13 +1371,6 @@ color:gray;
 font-size: 100px;
 }
 
-#home_content {
-    min-width: unset !important;
-    height: 100%;
-    max-width: 600px;
-    /*margin-left: calc(50% - 300px);*/
-}
-
 .po_item {
     height: 50px;
     margin-top: 10px;
@@ -1414,4 +1406,13 @@ font-size: 100px;
     padding-bottom: 5px;
     padding-left: 4px;
     padding-righT: 4px;
+}
+
+@media (min-width: 860px) {
+#home_content {
+    min-width: unset !important;
+    height: 100%;
+    max-width: 600px;
+    margin-left: calc(50% - 300px);
+}
 }
