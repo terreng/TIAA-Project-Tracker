@@ -1495,6 +1495,11 @@ function assignUser(uid) {
 var cuser = users[uid];
 var pendhtml = "<div style='overflow: hidden; margin-bottom: -10px;'>";
 
+var before_group = false;
+if (users && users[uid] && users[uid].group) {
+	before_group = users[uid].group;
+}
+
 for (var i = 0; i < Object.keys(groups).length; i++) {
 var cgroup = groups[Object.keys(groups)[i]];
 
@@ -1507,8 +1512,17 @@ userstring = " (1 member)"
 }
 }
 
-pendhtml += '<div class="post_attach" onclick="confirmAssign(\''+uid+'\','+i+')"><div class="pa_left"><i class="material-icons">group</i></div><div class="pa_right">'+htmlescape(cgroup.name)+userstring+'</div></div>'
+var dis_style = "";
+if (before_group == Object.keys(groups)[i]) {
+dis_style = 'style="color: gray;pointer-events: none;"';
+}
+
+pendhtml += '<div '+dis_style+' class="post_attach" onclick="confirmAssign(\''+uid+'\','+i+')"><div class="pa_left"><i class="material-icons">group</i></div><div class="pa_right">'+htmlescape(cgroup.name)+userstring+'</div></div>'
 	
+}
+
+if (before_group && groups && groups[before_group]) {
+	pendhtml += '<div class="post_attach" onclick="confirmAssign(\''+uid+'\',-1)"><div class="pa_left"><i class="material-icons">close</i></div><div class="pa_right">No group (Unassigned)</div></div>'
 }
 
 pendhtml += "</div>"
@@ -1518,8 +1532,16 @@ showAlert('Choose group for "'+htmlescape(cuser.name)+'"',pendhtml,"cancel",func
 }
 
 function confirmAssign(userid,groupid) {
-	
+
+if (groupid == -1) {
+var grn = "[DELETED GROUP]";
+if (groups && groups[users[userid].group]) {
+grn = htmlescape(groups[users[userid].group].name);
+}
+showAlert('Remove user "'+htmlescape(users[userid].name)+'" from group "'+grn+'"?',"This user will become unassigned","confirm",function(){actualAssign(userid,groupid)});
+} else {
 showAlert('Assign user "'+htmlescape(users[userid].name)+'" to group "'+htmlescape(groups[Object.keys(groups)[groupid]].name)+'"?',"","confirm",function(){actualAssign(userid,groupid)});
+}
 	
 }
 
@@ -1527,6 +1549,33 @@ function actualAssign(userid,groupid) {
 
 createPostProgress("Assigning user")
 
+if (users && users[userid].group && groups && groups[users[userid].group]) {
+	
+var mem_array = groups[users[userid].group].members;
+if (mem_array.indexOf(userid) > -1) {
+	mem_array.splice(mem_array.indexOf(userid),1);
+	firebase.database().ref("groups/"+users[userid].group+"/members").set(mem_array).then(function() {
+	
+doNewGroup();
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+} else {
+	doNewGroup();
+}
+	
+} else {
+doNewGroup();
+}
+
+function doNewGroup() {
+if (groupid == -1) {
+firebase.database().ref("users/"+userid+"/group").set(null).then(function() {
+	
+hideAlert();
+loadGroups();
+	
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+} else {
 firebase.database().ref("users/"+userid+"/group").set(Object.keys(groups)[groupid]).then(function() {
 	
 var mem_array = groups[Object.keys(groups)[groupid]].members;
@@ -1544,6 +1593,8 @@ loadGroups();
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}
+}
 
 }
 
@@ -1562,7 +1613,11 @@ gid("bio_pic").src = users[uid].picture;
 var group_text = "Unassigned";
 gid("assign_button").innerHTML = "Assign group";
 if (users[uid].group) {
-	group_text = htmlescape(groups[users[uid].group].name);
+var grn = "[DELETED GROUP]";
+if (groups && groups[users[uid].group]) {
+	grn = htmlescape(groups[users[uid].group].name);
+}
+	group_text = grn;
 	gid("assign_button").innerHTML = "Change group";
 }
 gid("bio_details").innerHTML = '<div class="prof_detail truncate"><i class="material-icons">email</i>'+htmlescape(privateusers[uid].email)+'</div><div class="prof_detail truncate"><i class="material-icons">phone</i>'+formatPhone(privateusers[uid].phone)+'</div><div class="prof_detail truncate"><i class="custom-icons">0</i>'+htmlescape(users[uid].school)+'</div><div class="prof_detail truncate"><i class="material-icons">group</i>'+group_text+'</div>';
@@ -2125,7 +2180,7 @@ hideAlert();
 
 function requestDeleteTask(taskid) {
 	
-showAlert('Are you sure you want to delete this task?',"This action requires approval<div style='padding-top: 10px'></div>This delete request can be cancelled anytime before it is approved to restore the task","confirm",function(){confirmDeleteTaskR(taskid)});
+showAlert('Are you sure you want to delete this task?',"All users in this group will loose all points earned towards this task<div style='padding-top: 10px'></div>This action requires approval","confirm",function(){confirmDeleteTaskR(taskid)});
 	
 }
 
@@ -2338,6 +2393,22 @@ dismissCard("deleteapp",fake_task_id);
 }
 
 function appApproveDelTask(groupid,taskid) {
+	
+var fake_task_id = taskid.split("_").join("$");
+	
+disableCard("deleteapp",fake_task_id);
+setTimeout(function() {
+	enableCard("deleteapp",fake_task_id);
+},0)
+
+showAlert("Are you sure you want to delete this task?","This action cannot be undone.<div style='padding-top: 10px'></div>This task has already been approved. Deleting it will result in all members of the group loosing all points earned towards the task.","confirm",function() {
+	appApproveDelTaskReal(groupid,taskid);
+	hideAlert();
+})
+	
+}
+
+function appApproveDelTaskReal(groupid,taskid) {
 	
 var fake_task_id = taskid.split("_").join("$");
 	
@@ -2924,7 +2995,7 @@ this_task_points += citem.points;
 }
 }
 
-if (groups && groups[cgroupid] && groups[cgroupid].tasks) {
+if (groups && groups[cgroupid] && groups[cgroupid].tasks && groups[cgroupid].tasks[ctaskid]) {
 var task_points = Math.floor((groups[cgroupid].tasks[ctaskid].points/Object.keys(groups[cgroupid].tasks[ctaskid].items).length)*this_task_points);
 
 pendhtml += '<div class="po_item"><div class="po_left"><div class="truncate">'+groups[cgroupid].tasks[ctaskid].name+'</div><div class="truncate">'+groups[cgroupid].tasks[ctaskid].points+'/'+groups[cgroupid].tasks[ctaskid].orig_points+' points possible</div></div><div class="po_right">'+task_points+'<i class="material-icons">stars</i></div></div>'
