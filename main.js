@@ -215,6 +215,7 @@ gid("leaderboard_button").style.display = "block";
 } else {
 gid("groups_button").style.display = "block";
 gid("queue_button").style.display = "block";
+gid("leaderboard_button").style.display = "block";
 location.hash = "#queue";
 }
 
@@ -1447,6 +1448,48 @@ hideAlert();
 	
 }
 
+function getUserPoints(userid) {
+
+var total = 0;
+
+if (checks != null && checks[userid] != null) {
+for (var i = Object.keys(checks[userid].items).length-1; i > -1; i--) {
+	
+var cgroupid = Object.keys(checks[userid].items)[i];
+	
+for (var r = Object.keys(checks[userid].items[cgroupid]).length-1; r > -1; r--) {
+	
+var ctaskid = Object.keys(checks[userid].items[cgroupid])[r];
+var ctask = checks[userid].items[cgroupid][Object.keys(checks[userid].items[cgroupid])[r]];
+var this_task_points = 0;
+
+if (ctask) {
+for (var e = 0; e < Object.keys(ctask).length; e++) {
+	
+var citem = ctask[Object.keys(ctask)[e]];
+var citemid = Object.keys(ctask)[e];
+
+if (citem.status && citem.points != null) {
+this_task_points += citem.points;
+}
+	
+}
+}
+
+if (groups && groups[cgroupid] && groups[cgroupid].tasks && groups[cgroupid].tasks[ctaskid]) {
+var task_points = Math.floor((groups[cgroupid].tasks[ctaskid].points/Object.keys(groups[cgroupid].tasks[ctaskid].items).length)*this_task_points);
+
+total += task_points;
+}
+	
+}
+}
+}
+
+return total;
+	
+}
+
 function loadGroups() {
 	
 gid("users_list").style.display = "block";
@@ -1455,6 +1498,8 @@ gid("user_bio").style.display = "none";
 
 user_list_content.innerHTML = real_spinner;
 
+firebase.database().ref("checks").once('value').then(function(snapshot) {
+checks = snapshot.val();
 firebase.database().ref("groups").once('value').then(function(snapshot) {
 groups = snapshot.val();
 firebase.database().ref("users").once('value').then(function(snapshot) {
@@ -1471,7 +1516,7 @@ if (cgroup.members != null && cgroup.members.length > 0) {
 for (var e = 0; e < cgroup.members.length; e++) {
 var cuser = users[cgroup.members[e]];
 if (cuser && cuser.verified == true) {
-pendhtml += "<div class='user' onclick='openUser(\""+cgroup.members[e]+"\")'><div><img src='"+cuser.picture.split("/mo/").join("/s84/")+"'></img></div><div>"+htmlescape(cuser.name)+"</div><div>0<i class='material-icons'>stars</i></div></div>";
+pendhtml += "<div class='user' onclick='openUser(\""+cgroup.members[e]+"\")'><div><img src='"+cuser.picture.split("/mo/").join("/s84/")+"'></img></div><div>"+htmlescape(cuser.name)+"</div><div>"+getUserPoints(cgroup.members[e])+"<i class='material-icons'>stars</i></div></div>";
 users[cgroup.members[e]].ingroup = true;
 }
 }
@@ -1498,6 +1543,7 @@ if (nogrouphtml != "") {
 
 gid("user_list_content").innerHTML = pendhtml;
 
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
@@ -1637,7 +1683,7 @@ if (groups && groups[users[uid].group]) {
 	group_text = grn;
 	gid("assign_button").innerHTML = "Change group";
 }
-gid("bio_details").innerHTML = '<div class="prof_detail truncate"><i class="material-icons">email</i>'+htmlescape(privateusers[uid].email)+'</div><div class="prof_detail truncate"><i class="material-icons">phone</i>'+formatPhone(privateusers[uid].phone)+'</div><div class="prof_detail truncate"><i class="custom-icons">0</i>'+htmlescape(users[uid].school)+'</div><div class="prof_detail truncate"><i class="material-icons">group</i>'+group_text+'</div>';
+gid("bio_details").innerHTML = '<div class="prof_detail truncate"><i class="material-icons">email</i>'+htmlescape(privateusers[uid].email)+'</div><div class="prof_detail truncate"><i class="material-icons">phone</i>'+formatPhone(privateusers[uid].phone)+'</div><div class="prof_detail truncate"><i class="custom-icons">0</i>'+htmlescape(users[uid].school)+'</div><div class="prof_detail truncate"><i class="material-icons">group</i>'+group_text+'</div><div class="prof_detail truncate"><i class="material-icons">stars</i>'+getUserPoints(uid)+'</div>';
 	
 }
 
