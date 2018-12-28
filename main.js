@@ -184,7 +184,6 @@ gid = function(id) {return document.getElementById(id)};
 
 function afterLogin() {
 
-location.hash = "#home";
 openHome();
 
 gid("home_button").style.display = "none";
@@ -207,8 +206,13 @@ gid("profile_photo_2").src = firebase.auth().currentUser.photoURL;
 gid("profile_photo").style.display = "block";
 if (userjson && userjson.group) {
 gid("home_button").style.display = "block";
+if (["#home","#points","#leaderboard","#settings"].indexOf(location.hash) == -1) {
+location.hash = "#home";
+}
 } else {
+if (["#points","#leaderboard","#settings"].indexOf(location.hash) == -1) {
 location.hash = "#settings";
+}
 }
 gid("points_button").style.display = "block";
 gid("leaderboard_button").style.display = "block";
@@ -216,7 +220,9 @@ gid("leaderboard_button").style.display = "block";
 gid("groups_button").style.display = "block";
 gid("queue_button").style.display = "block";
 gid("leaderboard_button").style.display = "block";
+if (["#queue","#groups","#leaderboard","#settings"].indexOf(location.hash) == -1) {
 location.hash = "#queue";
+}
 }
 
 gid("settings_button").style.display = "block";
@@ -3085,7 +3091,13 @@ this_task_points += citem.points;
 if (groups && groups[cgroupid] && groups[cgroupid].tasks && groups[cgroupid].tasks[ctaskid]) {
 var task_points = Math.floor((groups[cgroupid].tasks[ctaskid].points/Object.keys(groups[cgroupid].tasks[ctaskid].items).length)*this_task_points);
 
-pendhtml += '<div class="po_item"><div class="po_left"><div class="truncate">'+groups[cgroupid].tasks[ctaskid].name+'</div><div class="truncate">'+groups[cgroupid].tasks[ctaskid].points+'/'+groups[cgroupid].tasks[ctaskid].orig_points+' points possible</div></div><div class="po_right">'+task_points+'<i class="material-icons">stars</i></div></div>'
+var pen_string = "";
+var pen = groups[cgroupid].tasks[ctaskid].points-groups[cgroupid].tasks[ctaskid].orig_points;
+if (pen !== 0) {
+	pen_string = " <span style='color: red'>("+String(pen)+")</span>";
+}
+
+pendhtml += '<div class="po_item"><div class="po_left"><div class="truncate">'+groups[cgroupid].tasks[ctaskid].name+'</div><div class="truncate">'+groups[cgroupid].tasks[ctaskid].points+'/'+groups[cgroupid].tasks[ctaskid].orig_points+' points possible'+pen_string+'</div></div><div class="po_right">'+task_points+'<i class="material-icons">stars</i></div></div>'
 total += task_points;
 
 }
