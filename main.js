@@ -2,6 +2,8 @@ var inanim = false;
 var sactive = false;
 var userjson;
 var loaduserdata = false;
+var taskRef;
+var checkRef;
 
 function initFunction() {
   var config = {
@@ -103,7 +105,11 @@ gid("login_normal").style.display = "block";
 function logOut() {	
 firebase.auth().signOut().then(function() {
 gid("create_account").style.display = "block";
-localStorage.setItem("1_beta",false);
+if (taskRefListenerActive) {
+taskRef.off();
+checkRef.off();
+taskRefListenerActive = false;
+}
 if (isMobile) {
 toggleSidebar();
 }
@@ -316,8 +322,8 @@ gid("content_title").innerHTML = "Groups & Users"
 loadGroups();
 }
 if (tab == "queue") {
-gid("navtitle").innerHTML = "Approval Queue"
-gid("content_title").innerHTML = "Approval Queue"
+gid("navtitle").innerHTML = 'Approval Queue<div style="float: right;" onclick="queueRefresh(2)"><i class="material-icons" id="refresh2" style="font-size: 35px;padding-bottom: 1px;">refresh</i></div>'
+gid("content_title").innerHTML = 'Approval Queue<div onclick="queueRefresh(1)" style="float: right;margin-right: 288px;cursor:pointer;"><i id="refresh1" class="material-icons" style="font-size: 35px;padding-bottom: 1px;">refresh</i></div>'
 loadQueue();
 }
 if (tab == "settings") {
@@ -708,14 +714,26 @@ initTextarea(textarea,cctask.id.split("task_")[1],tasks[cctask.id.split("task_")
 }
 
 if (taskRefListenerActive == false) {
-var taskRef = firebase.database().ref("groups/"+userjson.group+"/tasks");
+taskRef = firebase.database().ref("groups/"+userjson.group+"/tasks");
 taskRef.on('value', function(snapshot) {
   updateTasksAndLists(snapshot.val());
+});
+checkRef = firebase.database().ref("checks/"+firebase.auth().currentUser.uid);
+checkRef.on('value', function(snapshot) {
+  updateChecks(snapshot.val());
   if (location.hash == "#points") {
 	  loadPoints();
   }
 });
-var checkRef = firebase.database().ref("checks/"+firebase.auth().currentUser.uid);
+taskRefListenerActive = true;
+}
+if (taskRefListenerActive == "partial") {
+checkRef.off();
+taskRef = firebase.database().ref("groups/"+userjson.group+"/tasks");
+taskRef.on('value', function(snapshot) {
+  updateTasksAndLists(snapshot.val());
+});
+checkRef = firebase.database().ref("checks/"+firebase.auth().currentUser.uid);
 checkRef.on('value', function(snapshot) {
   updateChecks(snapshot.val());
   if (location.hash == "#points") {
@@ -1511,6 +1529,8 @@ gid("user_bio").style.display = "none";
 
 user_list_content.innerHTML = real_spinner;
 
+firebase.database().ref("private").once('value').then(function(snapshot) {
+privateusers = snapshot.val();
 firebase.database().ref("checks").once('value').then(function(snapshot) {
 checks = snapshot.val();
 firebase.database().ref("groups").once('value').then(function(snapshot) {
@@ -1556,6 +1576,7 @@ if (nogrouphtml != "") {
 
 gid("user_list_content").innerHTML = pendhtml;
 
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
@@ -1852,7 +1873,6 @@ function groupsBack() {
 gid("users_list").style.display = "block";
 gid("groups_list").style.display = "none";
 gid("user_bio").style.display = "none";
-loadGroups();
 	
 }
 
@@ -2044,6 +2064,10 @@ pendhtml += '<div class="approval_card" id="item_'+fakeitemid+'!!!!'+cuserid+'" 
 }
 }
 
+if (pendhtml.length > 0) {
+pendhtml += "<div id='ignore_pls' style='padding-bottom:10px'></div>"
+}
+
 queue_content.innerHTML = pendhtml;
 
 expanded_cards = [];
@@ -2053,6 +2077,10 @@ if (auto_expand && gid('queue_content').children.length > 0) {
 	
 approveCard(gid('queue_content').children[0].id.split("_")[0],gid('queue_content').children[0].id.split("_")[1]);
 	
+}
+
+if (pendhtml.length === 0) {
+queue_content.innerHTML = '<div class="error_gray"><center><i class="material-icons">check</i></center>You\'re all caught up!</div>';
 }
 	
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
@@ -2114,7 +2142,7 @@ var expanded_yet = false;
 
 while(true) {
 	
-if (elem.nextSibling) {
+if (elem.nextSibling && elem.nextSibling.id !== "ignore_pls") {
 if (!elem.nextSibling.classList.contains("dismissed")) {
 	approveCard(elem.nextSibling.id.split("_")[0],elem.nextSibling.id.split("_")[1]);
 	expanded_yet = true;
@@ -3038,20 +3066,14 @@ window.open(imgsrc, '_blank');
 
 function loadPoints() {
 if (taskRefListenerActive == false) {
-var taskRef = firebase.database().ref("groups/"+userjson.group+"/tasks");
-taskRef.on('value', function(snapshot) {
-  if (location.hash == "#points") {
-	  loadPoints();
-  }
-});
-var checkRef = firebase.database().ref("checks/"+firebase.auth().currentUser.uid);
+checkRef = firebase.database().ref("checks/"+firebase.auth().currentUser.uid);
 checkRef.on('value', function(snapshot) {
 	checks = snapshot.val();
   if (location.hash == "#points") {
 	  loadPoints();
   }
 });
-taskRefListenerActive = true;
+taskRefListenerActive = "almost";
 }
 if (checks) {
 
@@ -3127,4 +3149,18 @@ gid("points_box").style.display = "none";
 gid("pointshistory_box").style.display = "none";
 gid("point_load").innerHTML = real_spinner;
 }
+}
+
+function queueRefresh(num) {
+
+gid("refresh"+num).classList.remove("spin_twice");
+window.requestAnimationFrame(function() {
+window.requestAnimationFrame(function() {
+if (gid("refresh"+num)) {
+	gid("refresh"+num).classList.add("spin_twice");
+}
+})
+})
+loadQueue();
+	
 }

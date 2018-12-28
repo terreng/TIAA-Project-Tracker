@@ -14,7 +14,6 @@ html {
 
 body {
 margin: 0;
-overflow: hidden;
 background-color: #eaedf2;
 font-family: 'roboto', sans-serif;
 -webkit-overflow-scrolling: touch !important;
@@ -1416,4 +1415,18 @@ font-size: 100px;
     max-width: 600px;
     margin-left: calc(50% - 300px);
 }
+}
+
+@keyframes spin_twice {
+  0% {
+	transform: rotate(0deg);
+  }
+  100% {
+	transform: rotate(360deg);
+  }
+}
+
+.spin_twice {
+	animation: 1s spin_twice forwards;
+	transform-origin: 50% 49.6%;
 }
