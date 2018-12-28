@@ -1,6 +1,7 @@
 var inanim = false;
 var sactive = false;
 var userjson;
+var loaduserdata = false;
 
 function initFunction() {
   var config = {
@@ -20,7 +21,14 @@ function initFunction() {
 	gid("username").value = "";
 	gid("password").value = "";
 	
-	firebase.database().ref("users/"+firebase.auth().currentUser.uid).once('value').then(function(snapshot) {	
+	firebase.database().ref("users/"+firebase.auth().currentUser.uid).on('value', function(snapshot) {
+		
+	if (loaduserdata == false) {
+		loaduserdata = true;
+	} else {
+		document.body.style.display = "none"
+		return location.reload();
+	}
 	
 	userjson = snapshot.val(); 
 	
@@ -37,7 +45,7 @@ function initFunction() {
 
 	}).catch(function(error) {alert("Login error: Error code: "+error.code)});
 	
-	}).catch(function(error) {alert("Login error: Error code: "+error.code)});
+	})
 	
   } else {
 document.getElementById("everything_loader").style.display = "none";
@@ -197,7 +205,11 @@ gid("prof_school").innerHTML = userjson.school;
 gid("profile_photo").src = firebase.auth().currentUser.photoURL;
 gid("profile_photo_2").src = firebase.auth().currentUser.photoURL;
 gid("profile_photo").style.display = "block";
+if (userjson && userjson.group) {
 gid("home_button").style.display = "block";
+} else {
+location.hash = "#settings";
+}
 gid("points_button").style.display = "block";
 gid("leaderboard_button").style.display = "block";
 } else {
@@ -214,6 +226,7 @@ gid("points_button").style.display = "none";
 gid("groups_button").style.display = "none";
 gid("queue_button").style.display = "none";
 gid("settings_button").style.display = "none";
+gid("leaderboard_button").style.display = "none";
 gid("welcome_button").style.display = "block";
 	location.hash = "#welcome";
 	loadSetup();
@@ -566,6 +579,10 @@ var tasks;
 var checks;
 
 function loadHome() {
+	
+if (!userjson || !userjson.group) {
+	return gid('tasks_list').innerHTML = "";
+}
 	
 gid('tasks_list').innerHTML = real_spinner;
 edittask = false;
@@ -1295,7 +1312,7 @@ if(!String.prototype.trim) {
 
 
 function editPhone(setup) {
-showAlert("Edit Phone Number","<input type='phone' class='c_text' id='edit1' placeholder='Phone number'><div id='p_error' style='display: none'></div>","submit",function() {savePhone(setup)});
+showAlert("Edit Phone Number","<input type='tel' class='c_text' id='edit1' placeholder='Phone number'><div id='p_error' style='display: none'></div>","submit",function() {savePhone(setup)});
 gid("edit1").focus();
 gid("edit1").value = privateuserjson.phone || "";
 }
@@ -2338,7 +2355,7 @@ function valApproveTask(groupid,taskid,fake_task_id) {
 	
 var pnts = taskpoints.value;
 
-if (pnts.length > 0 && String(pnts) == String(Number(pnts)) && String(pnts) != "NaN") {
+if (pnts.length > 0 && String(pnts) == String(Number(pnts)) && String(pnts) != "NaN" && !(pnts > 999)) {
 	
 hideAlert();
 	
@@ -2360,6 +2377,7 @@ dismissCard("taskapp",fake_task_id);
 	
 } else {
 	group_error_text.innerHTML = "Please enter a valid point value";
+	taskpoints.focus();
 }
 	
 }
@@ -2954,6 +2972,22 @@ window.open(imgsrc, '_blank');
 }
 
 function loadPoints() {
+if (taskRefListenerActive == false) {
+var taskRef = firebase.database().ref("groups/"+userjson.group+"/tasks");
+taskRef.on('value', function(snapshot) {
+  if (location.hash == "#points") {
+	  loadPoints();
+  }
+});
+var checkRef = firebase.database().ref("checks/"+firebase.auth().currentUser.uid);
+checkRef.on('value', function(snapshot) {
+	checks = snapshot.val();
+  if (location.hash == "#points") {
+	  loadPoints();
+  }
+});
+taskRefListenerActive = true;
+}
 if (checks) {
 
 gid("points_box").style.display = "none";
