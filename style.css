@@ -19,6 +19,32 @@ font-family: 'roboto', sans-serif;
 -webkit-overflow-scrolling: touch !important;
 height: 100%;
 width: 100%;
+--main: #263238;
+--div_line: #455A64;
+--hover: #37474F;
+--active: #29B6F6;
+--text: #CFD8DC;
+--desktop_title: #2196F3;
+}
+
+.Franklin {
+--main: #572932;
+--div_line: #905762;
+--hover: #7b454f;
+--active: #ff9cd7;
+--text: #fff5f7;
+--desktop_title: #e491a1;
+background-color: #f5edef;
+}
+
+.Roosevelt {
+--main: #805a07;
+--div_line: #bd8c1f;
+--hover: #a07616;
+--active: #ffef75;
+--text: #fffde4;
+--desktop_title: #e2ad38;
+background-color: #f5efe3;
 }
 
 ol {
@@ -34,7 +60,7 @@ transition:background-color 0s, opacity 0s, color 0s, width 0s, height 0s, paddi
 .sidebar {
 width: 260px;
 height: 100%;
-background-color: #263238;
+background-color: var(--main);
 color: white;
 position: absolute;
 z-index:4;
@@ -129,22 +155,22 @@ font-size: 22px;
 text-align: left;
 padding-top: 9px;
 min-height: 36px;
-color: #CFD8DC;
+color: var(--text);
 }
 
 .option:hover {
-background-color: #37474F;
+background-color: var(--hover);
 color: white;
 }
 
 .option.active {
-color: #29B6F6;
+color: var(--active);
 }
 
 .shr {
 width: 100%;
 height: 1px;
-background-color: #455A64;
+background-color: var(--div_line);
 }
 
 a {
@@ -160,12 +186,12 @@ font-size: 22px;
 text-align: left;
 padding-top: 9px;
 min-height: 70px;
-color: #CFD8DC;
+color: var(--text);
 }
 
 
 .account:hover {
-background-color: #37474F;
+background-color: var(--hover);
 color: white;
 }
 
@@ -178,7 +204,7 @@ padding-top: 1px;
 
 .top_title {
     width: 100%;
-    background-color: #263238;
+    background-color: var(--main);
     overflow: visible;
 	box-shadow: 0px 1px 5px black;
 }
@@ -379,10 +405,10 @@ padding-left: 6px;
 }
 
 .content_title {
-    min-width: 100%;
-    background-color: #2196F3;
+    min-width: calc(100% - 275px);
+    background-color: var(--desktop_title);
     overflow: visible;
-	box-shadow: 0px 1px 5px black;
+	box-shadow: 0px 1px 5px #4e4e4e;
     padding-top: 1px;
 	color: white;
     font-size: 27px;
@@ -1503,4 +1529,12 @@ font-size: 100px;
     padding-top: 2px !important;
     padding-left: 1px !important;
     padding-right: 2px !important;
+}
+
+.edit_list .add_item:nth-of-type(11), .edit_list .add_item:nth-of-type(12) {
+	color: gray;
+}
+
+.edit_list .item_space ~ .add_item:nth-of-type(11) {
+	color: black !important;
 }

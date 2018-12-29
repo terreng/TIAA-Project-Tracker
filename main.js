@@ -110,6 +110,7 @@ taskRef.off();
 checkRef.off();
 taskRefListenerActive = false;
 }
+document.body.classList = "";
 if (isMobile) {
 toggleSidebar();
 }
@@ -201,6 +202,10 @@ gid("points_button").style.display = "none";
 gid("groups_button").style.display = "none";
 gid("queue_button").style.display = "none";
 gid("leaderboard_button").style.display = "none";
+
+if (userjson && userjson.school) {
+	document.body.classList = userjson.school;
+}
 
 gid("controlpanel").style.display = "block";
 gid("login").style.display = "none";
@@ -1405,7 +1410,7 @@ gid("setup_3").style.display = "block";
 }
 
 var selected_school = false;
-var schools = ["Roosevelt","Lincoln"];
+var schools = ["Roosevelt","Franklin"];
 
 function selectSchool(schoolid) {
 	
