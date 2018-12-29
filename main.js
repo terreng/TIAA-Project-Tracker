@@ -665,7 +665,11 @@ if (tasks[taskid].status == "rejected") {
 }
 if (tasks[taskid].status == "approved") {
 	var point_prog = calcPointsAndProgress(taskid);
-	banner = '<div class="task_status"><div>Progress: '+Math.round(point_prog[0]*100)+'%</div><div>'+Math.floor(point_prog[1])+'/'+ctask.points+' <i class="material-icons">stars</i></div><div style="background: linear-gradient(to right, #1088ff, #ad19d2 '+Math.round(point_prog[0]*100)+'%, #d2d2d2 0%);"></div></div><div style="display: none" class="task_edit"><div>You have unsaved changes</div><div onclick="submitChanges(\''+taskid+'\')">Submit</div></div>'
+	var waiting_for_app = "";
+	if (point_prog[2]) {
+		waiting_for_app = "<i class='material-icons point_pending_status'>access_time</i>";
+	}
+	banner = '<div class="task_status"><div>Progress: '+Math.round(point_prog[0]*100)+'%</div><div>'+waiting_for_app+Math.floor(point_prog[1])+'/'+ctask.points+' <i class="material-icons">stars</i></div><div style="background: linear-gradient(to right, #1088ff, #ad19d2 '+Math.round(point_prog[0]*100)+'%, #d2d2d2 0%);"></div></div><div style="display: none" class="task_edit"><div>You have unsaved changes</div><div onclick="submitChanges(\''+taskid+'\')">Submit</div></div>'
 }
 if (tasks[taskid].status == "delete") {
 	banner = '<div class="task_edit"><div>Pending deletion...</div><div onclick="cancelTaskDelete(\''+taskid+'\')">Cancel</div></div>';
@@ -2775,10 +2779,15 @@ if (taskid !== edittask && tasks[taskid].status == "approved") {
 if (checks && checks.items && checks.items[userjson.group] && checks.items[userjson.group][taskid] && checks.items[userjson.group][taskid][itemid]) {
 if (checks.items[userjson.group][taskid][itemid].status == "approved") {
 if (checks.items[userjson.group][taskid][itemid].points !== 1) {
-	showAlert("Partial completion","This item is considered completed, but you have recieved either partial or no points towards the task")
+if (checks.items[userjson.group][taskid][itemid].points == 0) {
+	showAlert("Partial completion","This item is considered completed, but you have recieved no points towards the task");
+}
+if (checks.items[userjson.group][taskid][itemid].points == 0.5) {
+	showAlert("Partial completion","This item is considered completed, but you have recieved only half points towards the task");
+}
 }
 } else {
-	showAlert("Pending review...","This item must be reviewed before any points are issued")
+	showAlert("Pending review...","This item must be reviewed before any points are issued");
 }
 } else {
 	checkitemcurrent = [taskid,itemid];
@@ -3018,13 +3027,18 @@ var ctask = tasks[Object.keys(tasks)[i]];
 var ctaskid = Object.keys(tasks)[i];
 
 if (ctask.status == "approved") {
+var points_pending = false;
 for (var e = 0; e < Object.keys(ctask.items).length; e++) {
 
 var citem = ctask.items[Object.keys(ctask.items)[e]];
 var citemid = Object.keys(ctask.items)[e];
 
 if (gid("item_"+citemid) != null && edittask !== ctaskid) {
-gid("item_"+citemid).querySelector("i").innerHTML = determineIcon(ctaskid,citemid);
+var icnicn = determineIcon(ctaskid,citemid);
+if (icnicn == "access_time") {
+	points_pending = true;
+}
+gid("item_"+citemid).querySelector("i").innerHTML = icnicn;
 }
 
 }
@@ -3032,7 +3046,11 @@ gid("item_"+citemid).querySelector("i").innerHTML = determineIcon(ctaskid,citemi
 point_prog = calcPointsAndProgress(ctaskid);
 
 gid("task_"+ctaskid).querySelector(".task_status").children[0].innerHTML = "Progress: "+Math.round(point_prog[0]*100)+"%";
+if (points_pending) {
+gid("task_"+ctaskid).querySelector(".task_status").children[1].innerHTML = "<i class='material-icons point_pending_status'>access_time</i>"+point_prog[1]+"/"+ctask.points+" <i class='material-icons'>stars</i>";
+} else {
 gid("task_"+ctaskid).querySelector(".task_status").children[1].innerHTML = point_prog[1]+"/"+ctask.points+" <i class='material-icons'>stars</i>";
+}
 gid("task_"+ctaskid).querySelector(".task_status").children[2].style = "background: linear-gradient(to right, #1088ff, #ad19d2 "+Math.round(point_prog[0]*100)+"%, #d2d2d2 0%);"
 
 }
@@ -3047,6 +3065,7 @@ var ctask = tasks[taskid];
 
 var progress = 0;
 var points = 0;
+var pending_approval = false;
 	
 for (var e = 0; e < Object.keys(ctask.items).length; e++) {
 
@@ -3054,6 +3073,10 @@ var citem = ctask.items[Object.keys(ctask.items)[e]];
 var citemid = Object.keys(ctask.items)[e];
 
 if (checks && checks.items && checks.items[userjson.group] && checks.items[userjson.group][taskid] && checks.items[userjson.group][taskid][citemid] && checks.items[userjson.group][taskid][citemid].status) {
+
+if (checks.items[userjson.group][taskid][citemid].status == "waiting") {
+pending_approval = true;
+}
 	
 progress += 1;
 points += checks.items[userjson.group][taskid][citemid].points || 0;
@@ -3063,9 +3086,9 @@ points += checks.items[userjson.group][taskid][citemid].points || 0;
 }
 
 if (Object.keys(ctask.items).length > 0) {
-return [progress/Object.keys(ctask.items).length,Math.floor((ctask.points/Object.keys(ctask.items).length)*points)]
+return [progress/Object.keys(ctask.items).length,Math.floor((ctask.points/Object.keys(ctask.items).length)*points),pending_approval]
 } else {
-return [0,0];
+return [0,0,pending_approval];
 }
 	
 }
@@ -3396,6 +3419,13 @@ var pendhtml = "";
 
 var groups_points = [];
 var group_positions = {};
+
+for (var i = 0; i < Object.keys(lead_groups).length; i++) {
+
+group_positions[Object.keys(lead_groups)[i]] = groups_points.length;
+groups_points.push([Object.keys(lead_groups)[i],0]);
+	
+}
 
 for (var i = 0; i < userpoints_array.length; i++) {
 

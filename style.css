@@ -1197,15 +1197,15 @@ font-size: 30px;
 .task_status div:nth-child(2) i {
 	vertical-align: top;
     font-size: 19px;
-    padding-top: 0px;
-    padding-left: 1px;	
+    padding-top: 0.5px;
+    padding-left: 0px;	
 }
 
 .task_status div:nth-child(2) {
 	float: left;
     font-size: 18px;
     padding: 6px;
-	width: 90px;
+    width: 111px;
 	padding-right: 7px;
 	text-align: right;
 }
@@ -1214,7 +1214,7 @@ font-size: 30px;
     float: left;
     font-size: 18px;
     padding: 6px;
-    width: calc(100% - 103px - 12px);
+    width: calc(100% - 124px - 12px);
 }
 
 .task_items {
@@ -1495,4 +1495,12 @@ font-size: 100px;
     margin-top: 2px;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
+}
+
+.point_pending_status {
+    vertical-align: top !important;
+    font-size: 15px !important;
+    padding-top: 2px !important;
+    padding-left: 1px !important;
+    padding-right: 2px !important;
 }
