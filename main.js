@@ -3180,7 +3180,7 @@ checkRef.on('value', function(snapshot) {
 });
 taskRefListenerActive = "almost";
 }
-if (checks) {
+if (checks !== undefined) {
 
 gid("points_box").style.display = "none";
 gid("pointshistory_box").style.display = "none";
@@ -3318,9 +3318,9 @@ gid("lead_loader").style.display = "none";
 gid("lead_contents").style.display = "block";
 loadLead(1);
 
-})//.catch(function(error) {showAlert("Error","Error code: "+error.code)});
-})//.catch(function(error) {showAlert("Error","Error code: "+error.code)});
-})//.catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 
 }
 
@@ -3434,11 +3434,13 @@ groups_points.push([Object.keys(lead_groups)[i],0]);
 
 for (var i = 0; i < userpoints_array.length; i++) {
 
+if (lead_users[userpoints_array[i][0]].group) {
 if (group_positions[lead_users[userpoints_array[i][0]].group] != null) {
 groups_points[group_positions[lead_users[userpoints_array[i][0]].group]][1] += userpoints_array[i][1];
 } else {
 group_positions[lead_users[userpoints_array[i][0]].group] = groups_points.length;
 groups_points.push([lead_users[userpoints_array[i][0]].group,userpoints_array[i][1]]);
+}
 }
 	
 }
