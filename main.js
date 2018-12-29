@@ -1752,7 +1752,7 @@ loadGroups();
 
 function giveUserPoints() {
 	
-showAlert('Give "'+htmlescape(users[open_user].name)+'" points','<input onkeypress="if(event.keyCode==13) {this.nextSibling.focus()}" type="tel" style="margin-bottom: 12px;" class="c_text" id="pointvalue" placeholder="Points"><input onkeypress="if(event.keyCode==13) {valGiveUserPoints()}" class="c_text" id="pointdesc" placeholder="Short description"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="points_error_text"></div>',"submit",function(){valGiveUserPoints()});
+showAlert('Give "'+htmlescape(users[open_user].name)+'" points','<input onkeypress="if(event.keyCode==13) {this.nextSibling.focus()}" type="number" style="margin-bottom: 12px;" class="c_text" id="pointvalue" placeholder="Points"><input onkeypress="if(event.keyCode==13) {valGiveUserPoints()}" class="c_text" id="pointdesc" placeholder="Short description"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="points_error_text"></div>',"submit",function(){valGiveUserPoints()});
 
 gid("pointvalue").focus();
 	
@@ -1767,20 +1767,23 @@ if (vpoints.length > 0 && String(vpoints) == String(Number(vpoints)) && String(v
 	
 if (vdesc.length > 0) {
 	
-createPostProgress("Giving user points");
+p_points = Number(vpoints);
+p_desc = vdesc;
 
-firebase.database().ref("checks/"+open_user+"/points").push({
-    points : Number(vpoints),
-	desc : vdesc
-}).then(
-function (snap) {
-
-hideAlert();
-loadGroups();
-
+var new_points = getUserPoints(open_user);
+new_points += p_points;
+if (new_points < 0) {
+	new_points = 0;
 }
-).catch(function(error) {showAlert("Error","Error code: "+error.code)});
-	
+if (p_points > 0) {
+showAlert('Give user "'+users[open_user].name+'" '+p_points+" point bonus?","New value: "+new_points+" points (+"+p_points+")<div style='padding-top: 10px'></div>Description: "+htmlescape(p_desc),"confirm",function() {
+	actualGiveUserPoints()
+})
+} else {
+showAlert('Give user "'+users[open_user].name+'" '+p_points+" point penalty?","New value: "+new_points+" points <span style='color: red'>("+p_points+")</span><div style='padding-top: 10px'></div>Description: "+htmlescape(p_desc),"confirm",function() {
+	actualGiveUserPoints()
+})
+}
 } else {
 	points_error_text.innerHTML = "Please enter a short description";
 	gid("pointdesc").focus();
@@ -1790,6 +1793,27 @@ loadGroups();
 	points_error_text.innerHTML = "Please enter a valid point value";
 	gid("pointvalue").focus();
 }
+	
+}
+
+var p_points;
+var p_desc;
+
+function actualGiveUserPoints() {
+	
+createPostProgress("Giving user points");
+
+firebase.database().ref("checks/"+open_user+"/points").push({
+    points : p_points,
+	desc : p_desc
+}).then(
+function (snap) {
+
+hideAlert();
+loadGroups();
+
+}
+).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 	
 }
 
@@ -2486,7 +2510,7 @@ setTimeout(function() {
 	enableCard("taskapp",fake_task_id);
 },0)
 	
-showAlert("Approve task",'<div style="padding-bottom: 12px;">How many points is this task worth?</div><input onkeypress="if(event.keyCode==13) {valApproveTask(\''+groupid+'\',\''+taskid+'\',\''+fake_task_id+'\')}" class="c_text" type="tel" id="taskpoints" placeholder="Points"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="group_error_text"></div>',"submit",function() {valApproveTask(groupid,taskid,fake_task_id)})
+showAlert("Approve task",'<div style="padding-bottom: 12px;">How many points is this task worth?</div><input onkeypress="if(event.keyCode==13) {valApproveTask(\''+groupid+'\',\''+taskid+'\',\''+fake_task_id+'\')}" class="c_text" type="number" id="taskpoints" placeholder="Points"><div style="color: red; font-size: 18px; padding-top: 3px; margin-bottom: -2px" id="group_error_text"></div>',"submit",function() {valApproveTask(groupid,taskid,fake_task_id)})
 	
 taskpoints.focus();
 	
@@ -3151,9 +3175,9 @@ if (checks != null) {
 if (checks.points != null) {
 for (var i = Object.keys(checks.points).length-1; i > -1; i--) {
 if (checks.points[Object.keys(checks.points)[i]].points > 0) {
-	history_entries.push([Object.keys(checks.points)[i],'<div class="po_item"><div class="po_left"><div class="truncate">Bonus points</div><div class="truncate">'+checks.points[Object.keys(checks.points)[i]].desc+'</div></div><div class="po_right">'+checks.points[Object.keys(checks.points)[i]].points+'<i class="material-icons">stars</i></div></div>']);
+	history_entries.push([Object.keys(checks.points)[i],'<div class="po_item"><div class="po_left"><div class="truncate">Bonus points</div><div class="truncate">'+htmlescape(checks.points[Object.keys(checks.points)[i]].desc)+'</div></div><div class="po_right">'+checks.points[Object.keys(checks.points)[i]].points+'<i class="material-icons">stars</i></div></div>']);
 } else {
-	history_entries.push([Object.keys(checks.points)[i],'<div class="po_item"><div class="po_left"><div class="truncate">Penalty</div><div class="truncate">'+checks.points[Object.keys(checks.points)[i]].desc+'</div></div><div class="po_right" style="color:red;">'+checks.points[Object.keys(checks.points)[i]].points+'<i class="material-icons" style="color:black;">stars</i></div></div>']);
+	history_entries.push([Object.keys(checks.points)[i],'<div class="po_item"><div class="po_left"><div class="truncate">Penalty</div><div class="truncate">'+htmlescape(checks.points[Object.keys(checks.points)[i]].desc)+'</div></div><div class="po_right" style="color:red;">'+checks.points[Object.keys(checks.points)[i]].points+'<i class="material-icons" style="color:black;">stars</i></div></div>']);
 }
 total += checks.points[Object.keys(checks.points)[i]].points;
 }
@@ -3191,7 +3215,7 @@ if (pen !== 0) {
 	pen_string = " <span style='color: red'>("+String(pen)+")</span>";
 }
 
-history_entries.push([ctaskid,'<div class="po_item"><div class="po_left"><div class="truncate">'+groups[cgroupid].tasks[ctaskid].name+'</div><div class="truncate">'+groups[cgroupid].tasks[ctaskid].points+'/'+groups[cgroupid].tasks[ctaskid].orig_points+' points possible'+pen_string+'</div></div><div class="po_right">'+task_points+'<i class="material-icons">stars</i></div></div>']);
+history_entries.push([ctaskid,'<div class="po_item"><div class="po_left"><div class="truncate">'+htmlescape(groups[cgroupid].tasks[ctaskid].name)+'</div><div class="truncate">'+groups[cgroupid].tasks[ctaskid].points+'/'+groups[cgroupid].tasks[ctaskid].orig_points+' points possible'+pen_string+'</div></div><div class="po_right">'+task_points+'<i class="material-icons">stars</i></div></div>']);
 total += task_points;
 
 }
@@ -3363,7 +3387,7 @@ if (userjson && userjson.verified && userpoints_array[i][0] == firebase.auth().c
 	bold_string = " style='font-weight:bold;' "
 }
 
-pendhtml += '<div class="lead_user"'+bold_string+'><div>#'+this_position+'</div><div><img src="'+lead_users[userpoints_array[i][0]].picture.split("/mo/").join("/s84/")+'"></div><div>'+lead_users[userpoints_array[i][0]].name+'</div><div>'+userpoints_array[i][1]+'<i class="material-icons">stars</i></div></div>';
+pendhtml += '<div class="lead_user"'+bold_string+'><div>#'+this_position+'</div><div><img src="'+lead_users[userpoints_array[i][0]].picture.split("/mo/").join("/s84/")+'"></div><div>'+htmlescape(lead_users[userpoints_array[i][0]].name)+'</div><div>'+userpoints_array[i][1]+'<i class="material-icons">stars</i></div></div>';
 	
 }
 }
@@ -3404,7 +3428,7 @@ if (userjson && userjson.verified && groups_points[i][0] == userjson.group) {
 	bold_string = " style='font-weight:bold;' "
 }
 
-pendhtml += '<div class="lead_user"'+bold_string+'><div>#'+this_position+'</div><div><i class="material-icons" style="font-size: 42px;">groups</i></div><div>'+lead_groups[groups_points[i][0]].name+'</div><div>'+groups_points[i][1]+'<i class="material-icons">stars</i></div></div>'
+pendhtml += '<div class="lead_user"'+bold_string+'><div>#'+this_position+'</div><div><i class="material-icons" style="font-size: 42px;">groups</i></div><div>'+htmlescape(lead_groups[groups_points[i][0]].name)+'</div><div>'+groups_points[i][1]+'<i class="material-icons">stars</i></div></div>'
 }
 	
 }
