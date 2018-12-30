@@ -30,7 +30,7 @@ width: 100%;
 .Franklin {
 --main: #572932;
 --div_line: #905762;
---hover: #7b454f;
+--hover: #75424c;
 --active: #ff9cd7;
 --text: #fff5f7;
 --desktop_title: #e491a1;
@@ -38,12 +38,12 @@ background-color: #f5edef;
 }
 
 .Roosevelt {
---main: #805a07;
---div_line: #bd8c1f;
---hover: #a07616;
---active: #ffef75;
---text: #fffde4;
---desktop_title: #e2ad38;
+--main: #5f4204;
+--div_line: #986e12;
+--hover: #7d5a0a;
+--active: #ffed60;
+--text: #f5f2d4;
+--desktop_title: #d29b21;
 background-color: #f5efe3;
 }
 
@@ -856,6 +856,7 @@ height: 218px;
     text-align: center;
     font-size: 22px;
     padding: 4px 0px;
+	cursor: pointer;
 }
 
 .actionbar_item i {
@@ -1033,6 +1034,7 @@ font-size: 30px;
 .user {
     overflow: hidden;
     height: 42px;
+	cursor: pointer;
     margin-bottom: 10px;
 }
 

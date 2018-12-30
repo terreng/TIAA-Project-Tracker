@@ -111,6 +111,7 @@ checkRef.off();
 taskRefListenerActive = false;
 }
 document.body.classList = "";
+document.querySelector("meta[name=theme-color]").setAttribute("content", "#263238");
 if (isMobile) {
 toggleSidebar();
 }
@@ -205,6 +206,13 @@ gid("leaderboard_button").style.display = "none";
 
 if (userjson && userjson.school) {
 	document.body.classList = userjson.school;
+	
+if (userjson.school == "Roosevelt") {
+	document.querySelector("meta[name=theme-color]").setAttribute("content", "#5f4204");
+}
+if (userjson.school == "Franklin") {
+	document.querySelector("meta[name=theme-color]").setAttribute("content", "#572932");
+}
 }
 
 gid("controlpanel").style.display = "block";
@@ -328,7 +336,7 @@ loadGroups();
 }
 if (tab == "queue") {
 gid("navtitle").innerHTML = 'Approval Queue<div style="float: right;" onclick="queueRefresh(2)"><i class="material-icons" id="refresh2" style="font-size: 35px;padding-bottom: 1px;">refresh</i></div>'
-gid("content_title").innerHTML = 'Approval Queue<div onclick="queueRefresh(1)" style="float: right;margin-right: 288px;cursor:pointer;"><i id="refresh1" class="material-icons" style="font-size: 35px;padding-bottom: 1px;">refresh</i></div>'
+gid("content_title").innerHTML = 'Approval Queue<div onclick="queueRefresh(1)" style="float: right;margin-right: 11px;cursor:pointer;"><i id="refresh1" class="material-icons" style="font-size: 35px;padding-bottom: 1px;">refresh</i></div>'
 loadQueue();
 }
 if (tab == "settings") {
@@ -439,10 +447,21 @@ if (firebase.auth().currentUser.emailVerified) {
 		gid("group_settings").style.display = "none";
 	}
 } else {
+	gid("phone_box").innerHTML = "<i>Loading...</i>"
+	gid("phone_settings").style.display = "block";
 	gid("account_settings").style.display = "block";
-	gid("phone_settings").style.display = "none";
 	gid("profile_info").style.display = "none";
 	gid("group_settings").style.display = "none";
+	firebase.database().ref("config").once('value').then(function(snapshot) {
+	var config = snapshot.val();
+	if (config) {
+	admin_number = config.phone;
+	gid("phone_box").innerHTML = formatPhone(config.phone) || "<i>Notifications phone number (not set)</i>";
+	} else {
+	admin_number = "";
+	gid("phone_box").innerHTML = "<i>Notifications phone number (not set)</i>";
+	}
+	}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }
 
 }
@@ -1351,15 +1370,26 @@ if(!String.prototype.trim) {
   };  
 } 
 
+var admin_number = false;
+var admin_edit_number = false;
 
 function editPhone(setup) {
 showAlert("Edit Phone Number","<input type='tel' class='c_text' id='edit1' placeholder='Phone number'><div id='p_error' style='display: none'></div>","submit",function() {savePhone(setup)});
 gid("edit1").focus();
+if (!firebase.auth().currentUser.emailVerified && userjson && userjson.admin == "admin") {
+admin_edit_number = true;
+gid("edit1").value = admin_number || "";
+} else {
+admin_edit_number = false;
 gid("edit1").value = privateuserjson.phone || "";
+}
 }
 
 function savePhone(setup) {
 var newphone = gid("edit1").value;
+if (newphone == "" && admin_edit_number) {
+	
+} else {
 if (String(newphone) !== String(Number(newphone)) && newphone.length > 0) {
 	gid("p_error").style.display = "block"
 	gid("edit1").focus();
@@ -1370,7 +1400,22 @@ if (String(newphone).length !== 10) {
 	gid("edit1").focus();
 	return gid("p_error").innerHTML = "Error: Invalid phone number"
 }
+}
 createPostProgress("Updating phone number");
+if (admin_edit_number) {
+firebase.database().ref('config/phone').set(newphone).then(function () {
+
+if (newphone !== "") {
+gid("phone_box").innerHTML = formatPhone(newphone);
+} else {
+gid("phone_box").innerHTML = "<i>Notifications phone number (not set)</i>";
+}
+	
+hideAlert();
+loadSettings();
+
+}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+} else {
 firebase.database().ref('private/'+firebase.auth().currentUser.uid+"/phone").set(newphone).then(function () {
 
 privateuserjson.phone = newphone;
@@ -1386,6 +1431,7 @@ hideAlert();
 loadSettings();
 
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}
 }
 
 function loadSetup() {
@@ -2125,7 +2171,7 @@ if (private_checks && private_checks[cuserid] && private_checks[cuserid].items &
 var citemprivate = private_checks[cuserid].items[cgroupid][ctaskid][citemid];
 
 if (citemprivate.image) {
-var imgproof = '<img onclick="imageClick(\''+fakeitemid+'\',\''+cuserid+'\',\''+citemprivate.image+'\')" onload="proofImgLoaded(this)" style="height: 0px;max-width: 100%;max-height: 220px;" src="'+citemprivate.image+'"></img><div style="background-color: rgb(138, 171, 138);width: 250px;text-align: center;font-size: 22px;color: white;border-radius: 6px;padding-top: 60px;padding-bottom: 61px;margin-top: -20px;margin-bottom: 4px;">Image loading...</div>'
+var imgproof = '<img onclick="imageClick(\''+fakeitemid+'\',\''+cuserid+'\',\''+citemprivate.image+'\')" onload="proofImgLoaded(this)" onerror="proofImgError(this)" style="height: 0px;max-width: 100%;max-height: 220px;" src="'+citemprivate.image.split("?")[0]+"_compressed."+citemprivate.image.split("/o/")[1].split(".")[1]+'"></img><div style="background-color: rgb(138, 171, 138);width: 250px;text-align: center;font-size: 22px;color: white;border-radius: 6px;padding-top: 60px;padding-bottom: 61px;margin-top: -20px;margin-bottom: 4px;">Image loading...</div>'
 } else {
 var imgproof = '<div style="height: 100px;width: 200px;background: #d6d6d6;border-radius:5px;margin-top: 0px;margin-bottom: 5px;display: block;"><i class="material-icons" style="font-size: 50px;color: #616161;text-align: center;width: 200px;padding-top: 12px;">photo_camera</i><div style="color: #616161;font-size: 20px;text-align: center;padding-top: 4px;">No image uploaded</div></div>'
 }
@@ -3155,6 +3201,11 @@ img.parentElement.parentElement.style.height = (img.parentElement.clientHeight-1
 }
 }
 
+function proofImgError(img) {
+	console.log(img.src);
+img.src = img.src.split("_compressed")[0]+"?alt=media";
+}
+
 function imageClick(itemid,userid,imgsrc) {
 	
 var fakeitemid = itemid.split("_").join("$");
@@ -3243,7 +3294,12 @@ if (pen !== 0) {
 	pen_string = " <span style='color: red'>("+String(pen)+")</span>";
 }
 
-history_entries.push([ctaskid,'<div class="po_item"><div class="po_left"><div class="truncate">'+htmlescape(groups[cgroupid].tasks[ctaskid].name)+'</div><div class="truncate">'+groups[cgroupid].tasks[ctaskid].points+'/'+groups[cgroupid].tasks[ctaskid].orig_points+' points possible'+pen_string+'</div></div><div class="po_right">'+task_points+'<i class="material-icons">stars</i></div></div>']);
+var pp = groups[cgroupid].tasks[ctaskid].points+'/'+groups[cgroupid].tasks[ctaskid].orig_points;
+if (groups[cgroupid].tasks[ctaskid].points == groups[cgroupid].tasks[ctaskid].orig_points) {
+	pp = groups[cgroupid].tasks[ctaskid].points;
+}
+
+history_entries.push([ctaskid,'<div class="po_item"><div class="po_left"><div class="truncate">'+htmlescape(groups[cgroupid].tasks[ctaskid].name)+'</div><div class="truncate">'+pp+' points possible'+pen_string+'</div></div><div class="po_right">'+task_points+'<i class="material-icons">stars</i></div></div>']);
 total += task_points;
 
 }
