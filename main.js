@@ -28,8 +28,12 @@ function initFunction() {
 	if (loaduserdata == false) {
 		loaduserdata = true;
 	} else {
+	if (!firebase.auth().currentUser.email.endsWith("@apps4pps.net") && (!userjson || !(userjson.admin == "admin"))) {
+		return false;
+	} else {
 		document.body.style.display = "none"
 		return location.reload();
+	}
 	}
 	
 	userjson = snapshot.val(); 
@@ -272,7 +276,8 @@ switchSection("home")
 if (firebase.auth().currentUser.email.indexOf("@apps4pps.net") == -1 && userjson.admin !== "admin") {
 	gid("welcome_button").style.display = "none";
 	gid("welcome_content").style.display = "none";
-	showAlert("Invalid email address","The TIAA Project Tracker is only accessible to apps4pps.net domain users","tryagain",function() {logOut()});
+	showAlert("Invalid email address","The TIAA Project Tracker is only accessible to users with @apps4pps.net Google accounts","tryagain",function() {logOut()});
+	gid("p_cancel").style.display = "none";
 }
 
 }
