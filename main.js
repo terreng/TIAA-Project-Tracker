@@ -269,7 +269,7 @@ switchSection(location.hash.split("#")[1])
 switchSection("home")
 }
 
-if (firebase.auth().currentUser.email.indexOf("@apps4pps.net") == -1 && userjson.admin !== "admin" && false) {
+if (firebase.auth().currentUser.email.indexOf("@apps4pps.net") == -1 && userjson.admin !== "admin") {
 	gid("welcome_button").style.display = "none";
 	gid("welcome_content").style.display = "none";
 	showAlert("Invalid email address","The TIAA Project Tracker is only accessible to apps4pps.net domain users","tryagain",function() {logOut()});
