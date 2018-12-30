@@ -714,7 +714,7 @@ if (tasks[taskid].status != null && tasks[taskid].status != "rejected") {
 	task_class = "";
 }
 	
-pendhtml += '<div class="task" id="task_'+taskid+'"><div class="task_top"><div>'+ctask.name+'</div><div><i onclick="taskMenu(\''+taskid+'\')" class="material-icons">more_vert</i></div></div>'+banner+'<div class="task_items '+task_class+'">'+task_items+task_add+'</div></div>'
+pendhtml += '<div class="task" id="task_'+taskid+'"><div class="task_top"><div>'+htmlescape(ctask.name)+'</div><div><i onclick="taskMenu(\''+taskid+'\')" class="material-icons">more_vert</i></div></div>'+banner+'<div class="task_items '+task_class+'">'+task_items+task_add+'</div></div>'
 	
 }
 }
@@ -2073,7 +2073,7 @@ var taskitem_sort = [];
 if (ctask.items != null) {
 for (var r = 0; r < Object.keys(ctask.items).length; r++) {
 var citeml = ctask.items[Object.keys(ctask.items)[r]];
-taskitem_sort[r] = [citeml.pos,'<div style="height: 26px;padding-top: 6px;"><div style="float: left;"><i class="material-icons" style="font-size: 26px;">check_box_outline_blank</i></div><div style="float: left;width: calc(100% - 31px);padding-left: 5px;font-size: 20px;">'+citeml.text+'</div></div>'];
+taskitem_sort[r] = [citeml.pos,'<div style="height: 26px;padding-top: 6px;"><div style="float: left;"><i class="material-icons" style="font-size: 26px;">check_box_outline_blank</i></div><div style="float: left;width: calc(100% - 31px);padding-left: 5px;font-size: 20px;">'+htmlescape(citeml.text)+'</div></div>'];
 }
 
 function taskSort(a,b) {
@@ -2098,7 +2098,7 @@ if (Object.keys(ctask.items).length > 1) {
 }
 }
 
-pendhtml += '<div class="approval_card" id="taskapp_'+faketaskid+'" onclick="approveCard(\'taskapp\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">list_alt</i></div><div class="app_right"><div class="app_title truncate">Task needs approval</div><div class="app_desc truncate">'+htmlescape(cgroup.name)+": "+htmlescape(ctask.name)+'</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">&quot;'+ctask.name+'&quot; by '+cgroup.name+'</center><center style="font-size: 18px;padding-top: 3px;">Task has '+itemam+'</center>'+itemhtml+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appRejectTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">close</i>Reject</div><div class="actionbar_item ac_green" onclick="appApproveTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
+pendhtml += '<div class="approval_card" id="taskapp_'+faketaskid+'" onclick="approveCard(\'taskapp\',\''+faketaskid+'\')"><div class="unexp"><div class="app_left"><i class="material-icons">list_alt</i></div><div class="app_right"><div class="app_title truncate">Task needs approval</div><div class="app_desc truncate">'+htmlescape(cgroup.name)+": "+htmlescape(ctask.name)+'</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">&quot;'+htmlescape(ctask.name)+'&quot; by '+htmlescape(cgroup.name)+'</center><center style="font-size: 18px;padding-top: 3px;">Task has '+itemam+'</center>'+itemhtml+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appRejectTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">close</i>Reject</div><div class="actionbar_item ac_green" onclick="appApproveTask(\''+cgroupid+'\',\''+ctaskid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
 	
 }
 
@@ -2196,7 +2196,7 @@ var descproof = '<div style="font-size: 20px;padding-top: 4px;padding-bottom: 2p
 }
 
 if (!citemprivate.description || !citemprivate.image) {
-descproof += '<div style="font-size: 20px;padding: 4px;margin-top: 4px;background-color: #ffdabf;border-radius: 5px;margin-bottom: 7px;margin-top:0px;">Reason for missing info:<div style="padding-top: 5px;"></div>&quot;'+citemprivate.excuse+'&quot;</div>';
+descproof += '<div style="font-size: 20px;padding: 4px;margin-top: 4px;background-color: #ffdabf;border-radius: 5px;margin-bottom: 7px;margin-top:0px;">Reason for missing info:<div style="padding-top: 5px;"></div>&quot;'+htmlescape(citemprivate.excuse)+'&quot;</div>';
 }
 	
 pendhtml += '<div class="approval_card" id="item_'+fakeitemid+'!!!!'+cuserid+'" onclick="approveCard(\'item\',\''+fakeitemid+'!!!!'+cuserid+'\')"><div class="unexp"><div class="app_left"><i class="custom-icons">3</i></div><div class="app_right"><div class="app_title truncate">Item awaiting review</div><div class="app_desc truncate">'+htmlescape(users[cuserid].name)+': &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">'+htmlescape(users[cuserid].name)+' has requested review for item &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</center><div class="prof_details prof_item"><div class="prof_detail"><i class="material-icons">group</i>'+htmlescape(groups[users[cuserid].group].name)+'</div><div class="prof_detail"><i class="material-icons">person</i>'+htmlescape(users[cuserid].name)+'</div><div class="prof_detail"><i class="material-icons">list_alt</i>'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].name)+'</div><div class="prof_detail"><i class="material-icons">check_box</i>&quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div>'+imgproof+descproof+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appDeclineItem(\''+cgroupid+'\',\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">close</i>Decline</div><div class="actionbar_item ac_green" onclick="appApproveItem(\''+cgroupid+'\',\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
