@@ -28,11 +28,13 @@ function initFunction() {
 	if (loaduserdata == false) {
 		loaduserdata = true;
 	} else {
+	if (!userjson || !snapshot.val() || userjson.verified !== snapshot.val().verified || userjson.group !== snapshot.val().group) {
 	if (!firebase.auth().currentUser.email.endsWith("@apps4pps.net") && (!userjson || !(userjson.admin == "admin"))) {
 		return false;
 	} else {
 		document.body.style.display = "none"
 		return location.reload();
+	}
 	}
 	}
 	
@@ -1549,7 +1551,8 @@ for (var i = Object.keys(checks[userid].points).length-1; i > -1; i--) {
 	total += checks[userid].points[Object.keys(checks[userid].points)[i]].points;
 }
 }
-	
+
+if (checks[userid].items != null) {
 for (var i = Object.keys(checks[userid].items).length-1; i > -1; i--) {
 	
 var cgroupid = Object.keys(checks[userid].items)[i];
@@ -1578,7 +1581,7 @@ var task_points = Math.floor((groups[cgroupid].tasks[ctaskid].points/Object.keys
 
 total += task_points;
 }
-	
+}	
 }
 }
 }
@@ -1667,6 +1670,7 @@ if (users && users[uid] && users[uid].group) {
 	before_group = users[uid].group;
 }
 
+if (groups != null) {
 for (var i = 0; i < Object.keys(groups).length; i++) {
 var cgroup = groups[Object.keys(groups)[i]];
 
@@ -1686,6 +1690,9 @@ dis_style = 'style="color: gray;pointer-events: none;"';
 
 pendhtml += '<div '+dis_style+' class="post_attach" onclick="confirmAssign(\''+uid+'\','+i+')"><div class="pa_left"><i class="material-icons">group</i></div><div class="pa_right">'+htmlescape(cgroup.name)+userstring+'</div></div>'
 	
+}
+} else {
+	pendhtml += "No groups found";
 }
 
 if (before_group && groups && groups[before_group]) {
@@ -2154,6 +2161,7 @@ for (var i = 0; i < Object.keys(checks).length; i++) {
 var ccheck = checks[Object.keys(checks)[i]];
 var cuserid = Object.keys(checks)[i];
 
+if (ccheck.items != null) {
 for (var o = 0; o < Object.keys(ccheck.items).length; o++) {
 	
 var cgroupid = Object.keys(ccheck.items)[o];
@@ -2193,6 +2201,7 @@ descproof += '<div style="font-size: 20px;padding: 4px;margin-top: 4px;backgroun
 	
 pendhtml += '<div class="approval_card" id="item_'+fakeitemid+'!!!!'+cuserid+'" onclick="approveCard(\'item\',\''+fakeitemid+'!!!!'+cuserid+'\')"><div class="unexp"><div class="app_left"><i class="custom-icons">3</i></div><div class="app_right"><div class="app_title truncate">Item awaiting review</div><div class="app_desc truncate">'+htmlescape(users[cuserid].name)+': &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div></div><div class="expand_content"><center style="font-size: 20px;padding-top: 2.5px;">'+htmlescape(users[cuserid].name)+' has requested review for item &quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</center><div class="prof_details prof_item"><div class="prof_detail"><i class="material-icons">group</i>'+htmlescape(groups[users[cuserid].group].name)+'</div><div class="prof_detail"><i class="material-icons">person</i>'+htmlescape(users[cuserid].name)+'</div><div class="prof_detail"><i class="material-icons">list_alt</i>'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].name)+'</div><div class="prof_detail"><i class="material-icons">check_box</i>&quot;'+htmlescape(groups[users[cuserid].group].tasks[ctaskid].items[citemid].text)+'&quot;</div></div>'+imgproof+descproof+'<div class="actionbar"><div class="actionbar_item ac_red" onclick="appDeclineItem(\''+cgroupid+'\',\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">close</i>Decline</div><div class="actionbar_item ac_green" onclick="appApproveItem(\''+cgroupid+'\',\''+cuserid+'\',\''+ctaskid+'\',\''+citemid+'\')"><i class="material-icons">check</i>Approve</div></div></div></div>'
 	
+}
 }
 }
 }
@@ -3077,6 +3086,7 @@ function updateChecks(new_checks) {
 
 checks = new_checks;
 
+if (tasks != null) {
 for (var i = 0; i < Object.keys(tasks).length; i++) {
 
 var ctask = tasks[Object.keys(tasks)[i]];
@@ -3111,6 +3121,7 @@ gid("task_"+ctaskid).querySelector(".task_status").children[2].style = "backgrou
 
 }
 
+}
 }
 
 }
@@ -3267,6 +3278,7 @@ total += checks.points[Object.keys(checks.points)[i]].points;
 }
 }
 
+if (checks.items != null) {
 for (var i = Object.keys(checks.items).length-1; i > -1; i--) {
 	
 var cgroupid = Object.keys(checks.items)[i];
@@ -3311,7 +3323,7 @@ total += task_points;
 	
 }
 }
-
+}
 }
 
 history_entries.sort(function(b, a){
@@ -3411,6 +3423,7 @@ for (var i = Object.keys(lead_checks[userid].points).length-1; i > -1; i--) {
 }
 }
 
+if (lead_checks[userid].items != null) {
 for (var i = Object.keys(lead_checks[userid].items).length-1; i > -1; i--) {
 	
 var cgroupid = Object.keys(lead_checks[userid].items)[i];
@@ -3440,6 +3453,7 @@ var task_points = Math.floor((lead_groups[cgroupid].tasks[ctaskid].points/Object
 total += task_points;
 }
 	
+}
 }
 }
 }
@@ -3486,11 +3500,13 @@ var pendhtml = "";
 var groups_points = [];
 var group_positions = {};
 
+if (lead_groups != null) {
 for (var i = 0; i < Object.keys(lead_groups).length; i++) {
 
 group_positions[Object.keys(lead_groups)[i]] = groups_points.length;
 groups_points.push([Object.keys(lead_groups)[i],0]);
 	
+}
 }
 
 for (var i = 0; i < userpoints_array.length; i++) {
