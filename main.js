@@ -29,7 +29,7 @@ function initFunction() {
 		loaduserdata = true;
 	} else {
 	if (!userjson || !snapshot.val() || userjson.verified !== snapshot.val().verified || userjson.group !== snapshot.val().group) {
-	if (!firebase.auth().currentUser.email.endsWith("@apps4pps.net") && (!userjson || !(userjson.admin == "admin"))) {
+	if (!firebase.auth().currentUser.email.endsWith("@apps4pps.net") && (!userjson || !(userjson.admin == "admin")) && false) {
 		return false;
 	} else {
 		document.body.style.display = "none"
@@ -82,9 +82,9 @@ gid("login_enter_normal").style.display = "none";
 gid("create_account_admin").style.display = "none";
 	
 var provider = new firebase.auth.GoogleAuthProvider();
-provider.setCustomParameters({
+/*provider.setCustomParameters({
   'hd': 'apps4pps.net'
-});
+});*/
 //provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
 if (isios) {
 firebase.auth().signInWithPopup(provider);
@@ -275,7 +275,7 @@ switchSection(location.hash.split("#")[1])
 switchSection("home")
 }
 
-if (firebase.auth().currentUser.email.indexOf("@apps4pps.net") == -1 && userjson.admin !== "admin") {
+if (firebase.auth().currentUser.email.indexOf("@apps4pps.net") == -1 && userjson.admin !== "admin" && false) {
 	gid("welcome_button").style.display = "none";
 	gid("welcome_content").style.display = "none";
 	showAlert("Invalid email address","The TIAA Project Tracker is only accessible to users with @apps4pps.net Google accounts","tryagain",function() {logOut()});
