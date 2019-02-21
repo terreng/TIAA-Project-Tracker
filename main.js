@@ -3166,12 +3166,38 @@ var fakeitemid = itemid.split("_").join("$");
 	
 disableCard("item",fakeitemid+"!!!!"+userid);
 	
-showAlert('Approve item','<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" style="margin-bottom: 14px;" onclick="actualApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',1)"><div class="pa_left"><i class="material-icons">stars</i></div><div class="pa_right">Full points</div></div><div class="post_attach" style="margin-bottom: 14px;" onclick="actualApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0.5)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i><i class="material-icons" style="width: 16px;overflow: hidden;margin-left: -32px;">stars</i></div><div class="pa_right">Half points</div></div><div class="post_attach" style="margin-bottom: 10px;" onclick="actualApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i></div><div class="pa_right">No points</div></div></div>',"cancel",function() {});
+showAlert('Approve item','<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" style="margin-bottom: 14px;" onclick="almostApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',1)"><div class="pa_left"><i class="material-icons">stars</i></div><div class="pa_right">Full points</div></div><div class="post_attach" style="margin-bottom: 14px;" onclick="almostApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0.5)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i><i class="material-icons" style="width: 16px;overflow: hidden;margin-left: -32px;">stars</i></div><div class="pa_right">Half points</div></div><div class="post_attach" style="margin-bottom: 10px;" onclick="almostApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i></div><div class="pa_right">No points</div></div></div>',"cancel",function() {});
 
 setTimeout(function() {
 	enableCard("item",fakeitemid+"!!!!"+userid);
 },0);
 	
+}
+
+var pendingActualApprove = [];
+
+function almostApproveItem(groupid,userid,taskid,itemid,points) {
+	pendingActualApprove = [groupid,userid,taskid,itemid,points];
+	
+var full = "";
+var half = "";
+var none = "";
+if (points == 1) {
+	full = " selected_item_point_value";
+}
+if (points == 0.5) {
+	half = " selected_item_point_value";
+}
+if (points == 0) {
+	none = " selected_item_point_value";
+}
+	
+showAlert('Approve item','<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach '+full+'" style="margin-bottom: 14px;" onclick="almostApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',1)"><div class="pa_left"><i class="material-icons">stars</i></div><div class="pa_right">Full points</div></div><div class="post_attach '+half+'" style="margin-bottom: 14px;" onclick="almostApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0.5)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i><i class="material-icons" style="width: 16px;overflow: hidden;margin-left: -32px;">stars</i></div><div class="pa_right">Half points</div></div><div class="post_attach '+none+'" style="margin-bottom: 10px;" onclick="almostApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i></div><div class="pa_right">No points</div></div></div>',"submit",function() {doActualApproveItem()});
+	
+}
+
+function doActualApproveItem() {
+	actualApproveItem(pendingActualApprove[0],pendingActualApprove[1],pendingActualApprove[2],pendingActualApprove[3],pendingActualApprove[4])
 }
 
 function actualApproveItem(groupid,userid,taskid,itemid,points) {
@@ -3195,6 +3221,21 @@ dismissCard("item",fakeitemid+"!!!!"+userid);
 
 function appDeclineItem(groupid,userid,taskid,itemid) {
 	
+var fakeitemid = itemid.split("_").join("$");
+	
+disableCard("item",fakeitemid+"!!!!"+userid);
+	
+showAlert('Decline item','<div style="overflow: hidden; margin-bottom: -10px;"><div class="post_attach" style="margin-bottom: 14px;" onclick="appActualDeclineItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\')"><div class="pa_left"><i class="material-icons">close</i></div><div class="pa_right">Reject entirely</div></div><div class="post_attach" style="margin-bottom: 10px;" onclick="actualApproveItem(\''+groupid+'\',\''+userid+'\',\''+taskid+'\',\''+itemid+'\',0)"><div class="pa_left"><i class="material-icons" style="color: #b7b7b7;">stars</i></div><div class="pa_right">Give no points</div></div></div>',"cancel",function() {});
+
+setTimeout(function() {
+	enableCard("item",fakeitemid+"!!!!"+userid);
+},0);
+	
+}
+
+function appActualDeclineItem(groupid,userid,taskid,itemid) {
+
+hideAlert();
 var fakeitemid = itemid.split("_").join("$");
 	
 disableCard("item",fakeitemid+"!!!!"+userid);

@@ -1541,3 +1541,10 @@ font-size: 100px;
 .edit_list .item_space ~ .add_item:nth-of-type(11) {
 	color: black !important;
 }
+
+.selected_item_point_value {
+    font-weight: bold;
+    background-color: #147bce;
+    border-radius: 5px;
+    color: white !important;
+}
