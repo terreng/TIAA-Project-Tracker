@@ -3432,7 +3432,7 @@ gid("lead_loader").style.display = "none";
 gid("lead_contents").style.display = "block";
 loadLead(1);
 
-}).catch(function(error) {showAlert("Error","Error code: "+error.code)});
+}).catch(function(error) {console.error(error);showAlert("Error","Error code: "+error.code)});
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 }).catch(function(error) {showAlert("Error","Error code: "+error.code)});
 
@@ -3531,8 +3531,9 @@ if (userjson && userjson.verified && userpoints_array[i][0] == firebase.auth().c
 	bold_string = " style='font-weight:bold;' "
 }
 
+if (lead_users[userpoints_array[i][0]].name) {
 pendhtml += '<div class="lead_user"'+bold_string+'><div>#'+this_position+'</div><div><img src="'+lead_users[userpoints_array[i][0]].picture.split("/mo/").join("/s84/")+'"></div><div>'+htmlescape(lead_users[userpoints_array[i][0]].name)+'</div><div>'+userpoints_array[i][1]+'<i class="material-icons">stars</i></div></div>';
-	
+}	
 }
 }
 if (tab == 2) {
